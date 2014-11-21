@@ -139,12 +139,14 @@ public class Proxy extends PluginAdapter
             case Flags.COM_INIT_DB:
                 this.logger.trace("COM_INIT_DB");
                 context.schema = Com_Initdb.loadFromPacket(packet).schema;
+                logger.trace("SCHEMA: "+context.schema);
                 break;
             
             // Query
             case Flags.COM_QUERY:
                 this.logger.trace("COM_QUERY");
                 context.query = Com_Query.loadFromPacket(packet).query;
+                logger.trace("----------QUERY: "+context.query);
                 break;
             
             default:

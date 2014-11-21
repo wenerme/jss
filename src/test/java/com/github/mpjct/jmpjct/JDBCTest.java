@@ -46,6 +46,15 @@ public class JDBCTest
             String value = rs.getString(2);
             System.out.printf("ID: %s VALUE: %s%n", id, value);
         }
+
+
+        c.setAutoCommit(false);
+        System.out.println("打开事务");
+        stmt.execute("insert into test values(2,'223')");
+        System.out.println("执行SQL");
+        c.commit();
+        System.out.println("提交事务");
+
         stmt.close();
         System.out.println("关闭语句");
         c.close();
