@@ -13,5 +13,7 @@ public class JDBCConnectionAcquire
         Connection c = DriverManager.getConnection("jdbc:mysql://localhost/test", "root", "root");
         ConnectionImpl impl = (ConnectionImpl) c;
         MysqlIO io = impl.getIO();
+        // 与该数据库的Socket连接
+        // io.mysqlConnection;
     }
 }
