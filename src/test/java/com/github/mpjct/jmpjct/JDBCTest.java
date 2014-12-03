@@ -27,6 +27,7 @@ public class JDBCTest
             }
         }).start();
         Thread.sleep(1000);
+        System.out.println("初始化完成");
         Connection c = DriverManager.getConnection("jdbc:mysql://localhost:5050/test", "root", "root");
         System.out.println("建立连接");
         Statement stmt = c.createStatement();
