@@ -9,24 +9,36 @@ package com.github.mpjct.jmpjct;
 import com.github.mpjct.jmpjct.util.IO;
 import java.io.IOException;
 import java.io.InputStream;
-import org.apache.log4j.Logger;
 import java.util.Properties;
+import jss.proto.define.CapabilityFlag;
+import jss.proto.define.StatusFlag;
+import jss.util.Values;
+import org.apache.log4j.Logger;
 
-public class JMP {
+public class JMP
+{
     public static Properties config = new Properties();
-    
-    public static void main(String[] args) throws IOException {
+
+    static
+    {
+        Values.cache(CapabilityFlag.class);
+        Values.cache(StatusFlag.class);
+    }
+
+    public static void main(String[] args) throws IOException
+    {
         String file = "conf/jmp.properties";
         InputStream config = IO.tryGetInputStream(file);
 
         JMP.config.load(config);
         config.close();
-        
+
         Logger logger = Logger.getLogger("JMP");
 //        PropertyConfigurator.configure(JMP.config.getProperty("logConf").trim());
-        
+
         String[] ports = JMP.config.getProperty("ports").split(",");
-        for (String port: ports) {
+        for (String port : ports)
+        {
             new JMP_Thread(Integer.parseInt(port.trim())).run();
         }
     }

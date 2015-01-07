@@ -5,101 +5,52 @@ package com.github.mpjct.jmpjct.plugin.debug;
  * Output packet debugging information
  */
 
-import com.github.mpjct.jmpjct.plugin.PluginAdapter;
-import java.util.ArrayList;
-import org.apache.log4j.Logger;
+import com.github.mpjct.jmpjct.Engine;
 import com.github.mpjct.jmpjct.mysql.proto.Flags;
 import com.github.mpjct.jmpjct.mysql.proto.Packet;
-import com.github.mpjct.jmpjct.Engine;
+import com.github.mpjct.jmpjct.plugin.PluginAdapter;
+import java.io.IOException;
+import java.util.ArrayList;
+import org.apache.log4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Debug extends PluginAdapter
 {
-    public Logger logger = Logger.getLogger("Plugin.Debug");
-    
-    public void read_handshake(Engine context) {
-        this.logger.debug("<- HandshakePacket");
-        this.logger.debug("   Server Version: "+context.handshake.serverVersion);
-        this.logger.debug("   Connection Id: "+context.handshake.connectionId);
-        this.logger.debug("   Server Capability Flags: "
-                          + Debug.dump_capability_flags(context.handshake.capabilityFlags));
+    public org.slf4j.Logger log = LoggerFactory.getLogger("Plugin.Debug");
+
+
+    public Debug()
+    {
     }
-    
-    public void read_auth(Engine context) {
-        this.logger.debug("-> AuthResponsePacket");
-        this.logger.debug("   Max Packet Size: "+context.authReply.maxPacketSize);
-        this.logger.debug("   User: "+context.authReply.username);
-        this.logger.debug("   Schema: "+context.authReply.schema);
-        
-        this.logger.debug("   Client Capability Flags: "
-                          + Debug.dump_capability_flags(context.authReply.capabilityFlags));
-    }
-    
-    public void read_query(Engine context) {
-        switch (Packet.getType(context.buffer.get(context.buffer.size()-1))) {
-            case Flags.COM_QUIT:
-                this.logger.info("-> COM_QUIT");
-                break;
-            
-            // Extract out the new default schema
-            case Flags.COM_INIT_DB:
-                this.logger.info("-> USE "+context.schema);
-                break;
-            
-            // Query
-            case Flags.COM_QUERY:
-                this.logger.info("-> "+context.query);
-                break;
-            
-            default:
-                this.logger.debug("Packet is "+Packet.getType(context.buffer.get(context.buffer.size()-1))+" type.");
-                Debug.dump_buffer(context);
-                break;
-        }
-        context.buffer_result_set();
-    }
-    
-    public void read_query_result(Engine context) {
-        if (!context.bufferResultSet)
-            return;
-        
-        switch (Packet.getType(context.buffer.get(context.buffer.size()-1))) {
-            case Flags.OK:
-                this.logger.info("<- OK");
-                break;
-            
-            case Flags.ERR:
-                this.logger.info("<- ERR");
-                break;
-            
-            default:
-                this.logger.debug("Result set or Packet is "+Packet.getType(context.buffer.get(context.buffer.size()-1))+" type.");
-                break;
-        }
-    }
-    
-    public static final void dump_buffer(ArrayList<byte[]> buffer) {
+
+    public static final void dump_buffer(ArrayList<byte[]> buffer)
+    {
         Logger logger = Logger.getLogger("Plugin.Debug");
-        
+
         if (!logger.isTraceEnabled())
             return;
-        
-        for (byte[] packet: buffer) {
+
+        for (byte[] packet : buffer)
+        {
             Packet.dump(packet);
         }
     }
-    
-    public static final void dump_buffer(Engine context) {
+
+    public static final void dump_buffer(Engine context)
+    {
         Logger logger = Logger.getLogger("Plugin.Debug");
-        
+
         if (!logger.isTraceEnabled())
             return;
-        
-        for (byte[] packet: context.buffer) {
+
+        for (byte[] packet : context.buffer)
+        {
             Packet.dump(packet);
         }
     }
-    
-    public static final String dump_capability_flags(long capabilityFlags) {
+
+    public static final String dump_capability_flags(long capabilityFlags)
+    {
         String out = "";
         if ((capabilityFlags & Flags.CLIENT_LONG_PASSWORD) != 0)
             out += " CLIENT_LONG_PASSWORD";
@@ -135,8 +86,9 @@ public class Debug extends PluginAdapter
             out += " CLIENT_SECURE_CONNECTION";
         return out;
     }
-    
-    public static final String dump_status_flags(long statusFlags) {
+
+    public static final String dump_status_flags(long statusFlags)
+    {
         String out = "";
         if ((statusFlags & Flags.SERVER_STATUS_IN_TRANS) != 0)
             out += " SERVER_STATUS_IN_TRANS";
@@ -165,5 +117,81 @@ public class Debug extends PluginAdapter
         if ((statusFlags & Flags.SERVER_PS_OUT_PARAMS) != 0)
             out += " SERVER_PS_OUT_PARAMS";
         return out;
+    }
+
+    public void read_handshake(Engine context)
+    {
+        log.debug("<- HandshakePacket");
+        log.debug("   Server Version: " + context.handshake.serverVersion);
+        log.debug("   Connection Id: " + context.handshake.connectionId);
+        log.debug("   Server Capability Flags: {}", Debug.dump_capability_flags(context.handshake.capabilityFlags));
+        log.debug("   Status Flags: {}", Debug.dump_status_flags(context.handshake.statusFlags));
+        log.debug("   Auth Plugin Name: {}", context.handshake.authPluginName);
+
+    }
+
+    public void read_auth(Engine context)
+    {
+        log.debug("-> AuthResponsePacket");
+        log.debug("   Max Packet Size: " + context.authReply.maxPacketSize);
+        log.debug("   User: " + context.authReply.username);
+        log.debug("   Schema: " + context.authReply.schema);
+
+        log.debug("   Client Capability Flags: "
+                + Debug.dump_capability_flags(context.authReply.capabilityFlags));
+    }
+
+    @Override
+    public void send_query_result(Engine context) throws IOException
+    {
+
+    }
+
+    public void read_query(Engine context)
+    {
+        switch (Packet.getType(context.buffer.get(context.buffer.size() - 1)))
+        {
+            case Flags.COM_QUIT:
+                log.info("-> COM_QUIT");
+                break;
+
+            // Extract out the new default schema
+            case Flags.COM_INIT_DB:
+                log.info("-> USE " + context.schema);
+                break;
+
+            // Query
+            case Flags.COM_QUERY:
+                log.info("-> " + context.query);
+                break;
+
+            default:
+                log.debug("Packet is " + Packet.getType(context.buffer.get(context.buffer.size() - 1)) + " type.");
+                Debug.dump_buffer(context);
+                break;
+        }
+        context.buffer_result_set();
+    }
+
+    public void read_query_result(Engine context)
+    {
+        if (!context.bufferResultSet)
+            return;
+
+        switch (Packet.getType(context.buffer.get(context.buffer.size() - 1)))
+        {
+            case Flags.OK:
+                log.info("<- OK");
+                break;
+
+            case Flags.ERR:
+                log.info("<- ERR");
+                break;
+
+            default:
+                log.debug("Result set or Packet is " + Packet
+                        .getType(context.buffer.get(context.buffer.size() - 1)) + " type.");
+                break;
+        }
     }
 }

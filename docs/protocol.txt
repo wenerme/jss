@@ -6,7 +6,7 @@ The MySQL protocol is used between the MySQL Clients and the MySQL Server. It is
 
 The documentation is sparse and is split between:
 
-  http://forge.mysql.com/wiki/MySQL_Internals_ClientServer_Protocol
+  http://dev.mysql.com/doc/internals/en/client-server-protocol.html
 
 and the source files of the MySQL Server:
 

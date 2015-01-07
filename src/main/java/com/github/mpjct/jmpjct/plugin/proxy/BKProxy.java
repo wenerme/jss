@@ -17,14 +17,13 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import jss.proto.define.CapabilityFlag;
-import jss.proto.define.StatusFlag;
 import jss.util.Values;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class Proxy extends PluginAdapter
+public class BKProxy extends PluginAdapter
 {
-    private final static Logger log = LoggerFactory.getLogger("Plugin.Proxy");
+    public Logger log = LoggerFactory.getLogger("Plugin.Proxy");
 
     // MySql server stuff
     public String mysqlHost = "";
@@ -43,66 +42,44 @@ public class Proxy extends PluginAdapter
             String[] hi = ph.split(":");
             if (context.port == Integer.parseInt(hi[0].trim()))
             {
-                this.mysqlHost = hi[1].trim();
-                this.mysqlPort = Integer.parseInt(hi[2].trim());
+                mysqlHost = hi[1].trim();
+                mysqlPort = Integer.parseInt(hi[2].trim());
                 break;
             }
         }
 
         // Connect to the mysql server on the other side
-        this.mysqlSocket = new Socket(this.mysqlHost, this.mysqlPort);
-        this.mysqlSocket.setPerformancePreferences(0, 2, 1);
-        this.mysqlSocket.setTcpNoDelay(true);
-        this.mysqlSocket.setTrafficClass(0x10);
-        this.mysqlSocket.setKeepAlive(true);
+        mysqlSocket = new Socket(mysqlHost, mysqlPort);
+        mysqlSocket.setPerformancePreferences(0, 2, 1);
+        mysqlSocket.setTcpNoDelay(true);
+        mysqlSocket.setTrafficClass(0x10);
+        mysqlSocket.setKeepAlive(true);
 
-        log.info("Connected to mysql server at " + this.mysqlHost + ":" + this.mysqlPort);
-        this.mysqlIn = new BufferedInputStream(this.mysqlSocket.getInputStream(), 16384);
-        this.mysqlOut = this.mysqlSocket.getOutputStream();
+        log.info("Connected to mysql server at " + mysqlHost + ":" + mysqlPort);
+        mysqlIn = new BufferedInputStream(mysqlSocket.getInputStream(), 16384);
+        mysqlOut = mysqlSocket.getOutputStream();
     }
 
     public void read_handshake(Engine context) throws IOException
     {
         log.trace("read_handshake");
-        byte[] packet = Packet.read_packet(this.mysqlIn);
+        byte[] packet = Packet.read_packet(mysqlIn);
 
         context.handshake = Handshake.loadFromPacket(packet);
+
+        log.debug("Read handshake \n\tCapability: {}",
+                Values.asEnumSet(context.handshake.capabilityFlags, CapabilityFlag.class));
 
         // Remove some flags from the reply
         context.handshake.removeCapabilityFlag(Flags.CLIENT_COMPRESS);
         context.handshake.removeCapabilityFlag(Flags.CLIENT_SSL);
         context.handshake.removeCapabilityFlag(Flags.CLIENT_LOCAL_FILES);
-        context.handshake.removeCapabilityFlag(Flags.CLIENT_SECURE_CONNECTION);
 
         // Set the default result set creation to the server's character set
         ResultSet.characterSet = context.handshake.characterSet;
 
         // Set Replace the packet in the buffer
         context.buffer.add(context.handshake.toPacket());
-    }
-
-    private void debugPacket(Handshake handshake)
-    {
-        if (log.isDebugEnabled())
-        {
-            log.debug("Read handshake \n" +
-                            "Capability: {}\n" +
-                            "Status: {}\n" +
-                            "protocolVersion: {}\n" +
-                            "serverVersion: {}\n" +
-                            "authPluginName: {}\n" +
-                            ""
-                    ,
-                    Values.asEnumSet(handshake.capabilityFlags, CapabilityFlag.class)
-                    , Values.asEnumSet(handshake.statusFlags, StatusFlag.class)
-                    , handshake.protocolVersion
-                    , handshake.serverVersion
-                    , handshake.authPluginName
-            );
-
-            log.debug(handshake.toString());
-
-        }
     }
 
     public void send_handshake(Engine context) throws IOException
@@ -137,14 +114,14 @@ public class Proxy extends PluginAdapter
     public void send_auth(Engine context) throws IOException
     {
         log.trace("send_auth");
-        Packet.write(this.mysqlOut, context.buffer);
+        Packet.write(mysqlOut, context.buffer);
         context.clear_buffer();
     }
 
     public void read_auth_result(Engine context) throws IOException
     {
         log.trace("read_auth_result");
-        byte[] packet = Packet.read_packet(this.mysqlIn);
+        byte[] packet = Packet.read_packet(mysqlIn);
         context.buffer.add(packet);
         if (Packet.getType(packet) != Flags.OK)
         {
@@ -170,8 +147,7 @@ public class Proxy extends PluginAdapter
         context.sequenceId = Packet.getSequenceId(packet);
         log.trace("Client sequenceId: " + context.sequenceId);
 
-        byte type = Packet.getType(packet);
-        switch (type)
+        switch (Packet.getType(packet))
         {
             case Flags.COM_QUIT:
                 log.trace("COM_QUIT");
@@ -189,10 +165,10 @@ public class Proxy extends PluginAdapter
             case Flags.COM_QUERY:
                 log.trace("COM_QUERY");
                 context.query = Com_Query.loadFromPacket(packet).query;
+                log.trace("----------QUERY: " + context.query);
                 break;
 
             default:
-                log.warn("Other Packet Type {}", type);
                 break;
         }
     }
@@ -200,7 +176,7 @@ public class Proxy extends PluginAdapter
     public void send_query(Engine context) throws IOException
     {
         log.trace("send_query");
-        Packet.write(this.mysqlOut, context.buffer);
+        Packet.write(mysqlOut, context.buffer);
         context.clear_buffer();
     }
 
@@ -208,7 +184,7 @@ public class Proxy extends PluginAdapter
     {
         log.trace("read_query_result");
 
-        byte[] packet = Packet.read_packet(this.mysqlIn);
+        byte[] packet = Packet.read_packet(mysqlIn);
         context.buffer.add(packet);
 
         context.sequenceId = Packet.getSequenceId(packet);
@@ -221,7 +197,7 @@ public class Proxy extends PluginAdapter
 
             default:
                 context.buffer = Packet
-                        .read_full_result_set(this.mysqlIn, context.clientOut, context.buffer, context.bufferResultSet);
+                        .read_full_result_set(mysqlIn, context.clientOut, context.buffer, context.bufferResultSet);
                 break;
         }
     }
@@ -236,14 +212,14 @@ public class Proxy extends PluginAdapter
     public void cleanup(Engine context)
     {
         log.trace("cleanup");
-        if (this.mysqlSocket == null)
+        if (mysqlSocket == null)
         {
             return;
         }
 
         try
         {
-            this.mysqlSocket.close();
+            mysqlSocket.close();
         } catch (IOException e) {}
     }
 }

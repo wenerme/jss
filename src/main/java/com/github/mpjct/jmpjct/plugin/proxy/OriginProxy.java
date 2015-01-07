@@ -16,15 +16,11 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import jss.proto.define.CapabilityFlag;
-import jss.proto.define.StatusFlag;
-import jss.util.Values;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.log4j.Logger;
 
-public class Proxy extends PluginAdapter
+public class OriginProxy extends PluginAdapter
 {
-    private final static Logger log = LoggerFactory.getLogger("Plugin.Proxy");
+    public Logger logger = Logger.getLogger("Plugin.Proxy");
 
     // MySql server stuff
     public String mysqlHost = "";
@@ -35,7 +31,7 @@ public class Proxy extends PluginAdapter
 
     public void init(Engine context) throws IOException, UnknownHostException
     {
-        log.trace("init");
+        this.logger.trace("init");
 
         String[] phs = JMP.config.getProperty("proxyHosts").split(",");
         for (String ph : phs)
@@ -56,14 +52,14 @@ public class Proxy extends PluginAdapter
         this.mysqlSocket.setTrafficClass(0x10);
         this.mysqlSocket.setKeepAlive(true);
 
-        log.info("Connected to mysql server at " + this.mysqlHost + ":" + this.mysqlPort);
+        this.logger.info("Connected to mysql server at " + this.mysqlHost + ":" + this.mysqlPort);
         this.mysqlIn = new BufferedInputStream(this.mysqlSocket.getInputStream(), 16384);
         this.mysqlOut = this.mysqlSocket.getOutputStream();
     }
 
     public void read_handshake(Engine context) throws IOException
     {
-        log.trace("read_handshake");
+        this.logger.trace("read_handshake");
         byte[] packet = Packet.read_packet(this.mysqlIn);
 
         context.handshake = Handshake.loadFromPacket(packet);
@@ -72,7 +68,6 @@ public class Proxy extends PluginAdapter
         context.handshake.removeCapabilityFlag(Flags.CLIENT_COMPRESS);
         context.handshake.removeCapabilityFlag(Flags.CLIENT_SSL);
         context.handshake.removeCapabilityFlag(Flags.CLIENT_LOCAL_FILES);
-        context.handshake.removeCapabilityFlag(Flags.CLIENT_SECURE_CONNECTION);
 
         // Set the default result set creation to the server's character set
         ResultSet.characterSet = context.handshake.characterSet;
@@ -81,40 +76,16 @@ public class Proxy extends PluginAdapter
         context.buffer.add(context.handshake.toPacket());
     }
 
-    private void debugPacket(Handshake handshake)
-    {
-        if (log.isDebugEnabled())
-        {
-            log.debug("Read handshake \n" +
-                            "Capability: {}\n" +
-                            "Status: {}\n" +
-                            "protocolVersion: {}\n" +
-                            "serverVersion: {}\n" +
-                            "authPluginName: {}\n" +
-                            ""
-                    ,
-                    Values.asEnumSet(handshake.capabilityFlags, CapabilityFlag.class)
-                    , Values.asEnumSet(handshake.statusFlags, StatusFlag.class)
-                    , handshake.protocolVersion
-                    , handshake.serverVersion
-                    , handshake.authPluginName
-            );
-
-            log.debug(handshake.toString());
-
-        }
-    }
-
     public void send_handshake(Engine context) throws IOException
     {
-        log.trace("send_handshake");
+        this.logger.trace("send_handshake");
         Packet.write(context.clientOut, context.buffer);
         context.clear_buffer();
     }
 
     public void read_auth(Engine context) throws IOException
     {
-        log.trace("read_auth");
+        this.logger.trace("read_auth");
         byte[] packet = Packet.read_packet(context.clientIn);
         context.buffer.add(packet);
 
@@ -122,7 +93,7 @@ public class Proxy extends PluginAdapter
 
         if (!context.authReply.hasCapabilityFlag(Flags.CLIENT_PROTOCOL_41))
         {
-            log.error("We do not support Protocols under 4.1");
+            this.logger.fatal("We do not support Protocols under 4.1");
             context.halt();
             return;
         }
@@ -136,77 +107,74 @@ public class Proxy extends PluginAdapter
 
     public void send_auth(Engine context) throws IOException
     {
-        log.trace("send_auth");
+        this.logger.trace("send_auth");
         Packet.write(this.mysqlOut, context.buffer);
         context.clear_buffer();
     }
 
     public void read_auth_result(Engine context) throws IOException
     {
-        log.trace("read_auth_result");
+        this.logger.trace("read_auth_result");
         byte[] packet = Packet.read_packet(this.mysqlIn);
         context.buffer.add(packet);
         if (Packet.getType(packet) != Flags.OK)
         {
-            log.error("Auth is not okay!");
+            this.logger.fatal("Auth is not okay!");
         }
     }
 
     public void send_auth_result(Engine context) throws IOException
     {
-        log.trace("read_auth_result");
+        this.logger.trace("read_auth_result");
         Packet.write(context.clientOut, context.buffer);
         context.clear_buffer();
     }
 
     public void read_query(Engine context) throws IOException
     {
-        log.trace("read_query");
+        this.logger.trace("read_query");
         context.bufferResultSet = false;
 
         byte[] packet = Packet.read_packet(context.clientIn);
         context.buffer.add(packet);
 
         context.sequenceId = Packet.getSequenceId(packet);
-        log.trace("Client sequenceId: " + context.sequenceId);
+        this.logger.trace("Client sequenceId: " + context.sequenceId);
 
-        byte type = Packet.getType(packet);
-        switch (type)
+        switch (Packet.getType(packet))
         {
             case Flags.COM_QUIT:
-                log.trace("COM_QUIT");
+                this.logger.trace("COM_QUIT");
                 context.halt();
                 break;
 
             // Extract out the new default schema
             case Flags.COM_INIT_DB:
-                log.trace("COM_INIT_DB");
+                this.logger.trace("COM_INIT_DB");
                 context.schema = Com_Initdb.loadFromPacket(packet).schema;
-                log.trace("SCHEMA: " + context.schema);
                 break;
 
             // Query
             case Flags.COM_QUERY:
-                log.trace("COM_QUERY");
+                this.logger.trace("COM_QUERY");
                 context.query = Com_Query.loadFromPacket(packet).query;
                 break;
 
             default:
-                log.warn("Other Packet Type {}", type);
                 break;
         }
     }
 
     public void send_query(Engine context) throws IOException
     {
-        log.trace("send_query");
+        this.logger.trace("send_query");
         Packet.write(this.mysqlOut, context.buffer);
         context.clear_buffer();
     }
 
     public void read_query_result(Engine context) throws IOException
     {
-        log.trace("read_query_result");
+        this.logger.trace("read_query_result");
 
         byte[] packet = Packet.read_packet(this.mysqlIn);
         context.buffer.add(packet);
@@ -228,14 +196,14 @@ public class Proxy extends PluginAdapter
 
     public void send_query_result(Engine context) throws IOException
     {
-        log.trace("send_query_result");
+        this.logger.trace("send_query_result");
         Packet.write(context.clientOut, context.buffer);
         context.clear_buffer();
     }
 
     public void cleanup(Engine context)
     {
-        log.trace("cleanup");
+        this.logger.trace("cleanup");
         if (this.mysqlSocket == null)
         {
             return;
