@@ -63,6 +63,9 @@ public class Values
         return new SimpleValue<>(value);
     }
 
+    /**
+     * @return null if not found
+     */
     @SuppressWarnings("unchecked")
     public static <V, T extends Enum & IsValue<V>> T fromValue(Class<T> type, V v)
     {

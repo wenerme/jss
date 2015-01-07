@@ -319,12 +319,172 @@ public enum Command implements IsInteger
     COM_TABLE_DUMP(19),
     COM_CONNECT_OUT(20),
     COM_REGISTER_SLAVE(21),
+    /**
+     * create a prepared statement
+     * <p/>
+     * Fields
+     * command (1) -- [16] the COM_STMT_PREPARE command
+     * <p/>
+     * query (string.EOF) -- the query to prepare
+     * <p/>
+     * Example
+     * 1c 00 00 00 16 53 45 4c    45 43 54 20 43 4f 4e 43    .....SELECT CONC
+     * 41 54 28 3f 2c 20 3f 29    20 41 53 20 63 6f 6c 31    AT(?, ?) AS col1
+     * Implemented By
+     * mysqld_stmt_prepare()
+     * <p/>
+     * Return
+     * COM_STMT_PREPARE_OK on success, ERR_Packet otherwise
+     * <p/>
+     * Note
+     * As LOAD DATA isn't supported by COM_STMT_PREPARE yet, no Protocol::LOCAL_INFILE_Request is expected here. Compare this to COM_QUERY_Response.
+     */
     COM_STMT_PREPARE(22),
+    /**
+     * COM_STMT_EXECUTE asks the server to execute a prepared statement as identified by stmt-id.
+     * <pre>
+     *
+     * It sends the values for the placeholders of the prepared statement
+     * (if it contained any) in Binary Protocol Value form. The type of each
+     * parameter is made up of two bytes:
+     *      the type as in Protocol::ColumnType
+     *      a flag byte which has the highest bit set if the type is unsigned [80]
+     *
+     * The num-params used for this packet has to match the num_params of the COM_STMT_PREPARE_OK of the corresponding prepared statement.
+     *
+     * The server returns a COM_STMT_EXECUTE Response.
+     *
+     * COM_STMT_EXECUTE:
+     * COM_STMT_EXECUTE
+     * execute a prepared statement
+     *
+     * direction: client -> server
+     * response: COM_STMT_EXECUTE Response
+     *
+     * payload:
+     * 1              [17] COM_STMT_EXECUTE
+     * 4              stmt-id
+     * 1              flags
+     * 4              iteration-count
+     * if num-params > 0:
+     * n              NULL-bitmap, length: (num-params+7)/8
+     * 1              new-params-bound-flag
+     * if new-params-bound-flag == 1:
+     * n              type of each parameter, length: num-params * 2
+     * n              value of each parameter
+     *
+     * example:
+     * 12 00 00 00 17 01 00 00    00 00 01 00 00 00 00 01    ................
+     * 0f 00 03 66 6f 6f                                     ...foo
+     * The iteration-count is always 1.
+     *
+     * The flags are:
+     * Flags Constant Name
+     * 0x00 CURSOR_TYPE_NO_CURSOR
+     * 0x01 CURSOR_TYPE_READ_ONLY
+     * 0x02 CURSOR_TYPE_FOR_UPDATE
+     * 0x04 CURSOR_TYPE_SCROLLABLE
+     * </pre>
+     * NULL-bitmap is like NULL-bitmap for the Binary Protocol Resultset Row just that it has a bit-offset of 0.
+     *
+     * @see <a href=http://dev.mysql.com/doc/internals/en/com-stmt-execute.html>com-stmt-execute</a>
+     */
     COM_STMT_EXECUTE(23),
+    /**
+     * COM_STMT_SEND_LONG_DATA sends the data for a column. Repeating to send it, appends the data to the parameter.
+     * <p/>
+     * No response is sent back to the client.
+     * <p/>
+     * COM_STMT_SEND_LONG_DATA:
+     * COM_STMT_SEND_LONG_DATA
+     * direction: client -> server
+     * response: none
+     * <p/>
+     * payload:
+     * 1              [18] COM_STMT_SEND_LONG_DATA
+     * 4              statement-id
+     * 2              param-id
+     * n              data
+     * COM_STMT_SEND_LONG_DATA has to be sent before COM_STMT_EXECUTE.
+     */
     COM_STMT_SEND_LONG_DATA(24),
+    /**
+     * COM_STMT_CLOSE deallocates a prepared statement
+     * <pre>
+     * No response is sent back to the client.
+     *
+     * COM_STMT_CLOSE:
+     * COM_STMT_CLOSE
+     * direction: client -> server
+     * response: none
+     *
+     * payload:
+     * 1              [19] COM_STMT_CLOSE
+     * 4              statement-id
+     *
+     * example:
+     * 05 00 00 00 19 01 00 00    00                         .........
+     * </pre>
+     *
+     * @see <a href=http://dev.mysql.com/doc/internals/en/com-stmt-close.html>com-stmt-close</a>
+     */
     COM_STMT_CLOSE(25),
+    /**
+     * COM_STMT_RESET resets the data of a prepared statement which was accumulated with COM_STMT_SEND_LONG_DATA commands and closes the cursor if it was opened with COM_STMT_EXECUTE
+     * <pre>
+     * The server will send a OK_Packet if the statement could be reset, a ERR_Packet if not.
+     *
+     * COM_STMT_RESET:
+     * COM_STMT_RESET
+     * direction: client -> server
+     * response: OK or ERR
+     *
+     * payload:
+     * 1              [1a] COM_STMT_RESET
+     * 4              statement-id
+     *
+     * example:
+     * 05 00 00 00 1a 01 00 00    00                         .........
+     * </pre>
+     *
+     * @see <a href=http://dev.mysql.com/doc/internals/en/com-stmt-reset.html>com-stmt-reset</a>
+     */
     COM_STMT_RESET(26),
+    /**
+     * Allows to enable and disable: CLIENT_MULTI_STATEMENTS
+     * <pre>
+     * for the current connection. The option operation is one of:
+     *
+     * Operation Constant Name
+     * 0 MYSQL_OPTION_MULTI_STATEMENTS_ON
+     * 1 MYSQL_OPTION_MULTI_STATEMENTS_OFF
+     *
+     * On success it returns a EOF_Packet otherwise a ERR_Packet.
+     *
+     * COM_SET_OPTION
+     * set options for the current connection
+     *
+     * response: EOF or ERR
+     *
+     * payload:
+     * 1              [1b] COM_SET_OPTION
+     * 2              option operation
+     * </pre>
+     *
+     * @see <a href=http://dev.mysql.com/doc/internals/en/com-set-option.html>com-set-option</a>
+     */
     COM_SET_OPTION(27),
+    /**
+     * Fetch rows from a existing resultset after a COM_STMT_EXECUTE.
+     * <pre>
+     * Payload
+     * 1              [1c] COM_STMT_FETCH
+     * 4              stmt-id
+     * 4              num rows
+     * Returns
+     * a COM_STMT_FETCH response( a multi-resultset or a ERR_Packet )
+     * </pre>
+     */
     COM_STMT_FETCH(28),
     /**
      * an internal command in the server
@@ -336,7 +496,6 @@ public enum Command implements IsInteger
      */
     COM_DAEMON(29),
     COM_BINLOG_DUMP_GTID(30),
-    COM_END(31),
     /**
      * Resets the session state; more lightweight than COM_CHANGE_USER because it does not close and reopen the connection, and does not re-authenticate
      * <p/>
@@ -347,7 +506,9 @@ public enum Command implements IsInteger
      * <p/>
      * a OK_Packet
      */
-    COM_RESET_CONNECTION(0x1F),;
+    COM_RESET_CONNECTION(31),
+//    COM_END(31),
+    ;
 
 
     private final int value;

@@ -3,7 +3,7 @@ package jss.server.net;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;
-import jss.proto.packate.Packet;
+import jss.proto.packet.Packet;
 
 public class PacketEncoder extends MessageToByteEncoder<Packet>
 {

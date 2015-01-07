@@ -1,12 +1,13 @@
 package jss.proto.define;
 
+import jss.proto.Protocol;
 import jss.util.IsInteger;
 import jss.util.Values;
 
 /**
  * @see <a href=http://dev.mysql.com/doc/internals/en/capability-flags.html>capability-flags</a>
  */
-public enum CapabilityFlag implements IsInteger
+public enum CapabilityFlag implements IsInteger, Protocol
 {
 
     /**
