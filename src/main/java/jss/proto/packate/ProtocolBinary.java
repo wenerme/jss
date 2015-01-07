@@ -1,5 +1,5 @@
 package jss.proto.packate;
 
-public interface ProtocolBinary extends Protocol
+public interface ProtocolBinary extends Packet
 {
 }

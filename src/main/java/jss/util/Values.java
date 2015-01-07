@@ -2,7 +2,6 @@ package jss.util;
 
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
-import java.util.BitSet;
 import java.util.EnumSet;
 import jss.proto.define.CapabilityFlag;
 import jss.util.impl.SimpleValue;
@@ -12,11 +11,6 @@ public class Values
     private static final Table<Class, Object, Object> cache = HashBasedTable.create();
 
     private Values() {}
-
-    public static BitSet asBitSet(IsInteger... integers)
-    {
-        return null;
-    }
 
     public static <T extends Enum<T> & IsInteger> EnumSet<T> asEnumSet(long flag, Class<T> clazz)
     {
@@ -37,6 +31,16 @@ public class Values
     }
 
     public static int or(IsInteger... integers)
+    {
+        int result = 0;
+        for (IsInteger integer : integers)
+        {
+            result |= integer.get();
+        }
+        return result;
+    }
+
+    public static int or(Iterable<? extends IsInteger> integers)
     {
         int result = 0;
         for (IsInteger integer : integers)
@@ -73,5 +77,7 @@ public class Values
 
         set = asEnumSet(or(CapabilityFlag.CLIENT_LONG_FLAG, CapabilityFlag.CLIENT_COMPRESS), CapabilityFlag.class);
         System.out.println(set);
+
+        System.out.println(or(set));
     }
 }
