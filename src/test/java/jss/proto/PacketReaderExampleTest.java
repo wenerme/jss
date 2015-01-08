@@ -115,7 +115,7 @@ payload: 0x01
 
     }
 
-    private PacketData dumpBytesToData(String dump)
+    public PacketData dumpBytesToData(String dump)
     {
         ByteBuf buf = fromDumpBytes(dump);
         try
