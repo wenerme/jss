@@ -6,8 +6,8 @@ import static org.junit.Assert.assertEquals;
 
 import com.github.mpjct.jmpjct.mysql.proto.define.Flags;
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufUtil;
 import io.netty.buffer.Unpooled;
+import java.io.IOException;
 import java.nio.ByteOrder;
 import java.util.regex.Pattern;
 import jss.proto.packet.EOF_Packet;
@@ -15,6 +15,7 @@ import jss.proto.packet.ERR_Packet;
 import jss.proto.packet.HandshakeResponse41;
 import jss.proto.packet.OK_Packet;
 import jss.proto.packet.PacketData;
+import org.apache.commons.io.HexDump;
 import org.junit.Test;
 
 public class PacketReaderExampleTest implements Flags
@@ -22,7 +23,7 @@ public class PacketReaderExampleTest implements Flags
     public static ByteBuf fromDumpBytes(String dump)
     {
         ByteBuf buf = Unpooled.buffer();
-        Pattern reg = Pattern.compile("\\s{2,}[^0-9a-fA-F]+$", Pattern.MULTILINE);
+        Pattern reg = Pattern.compile("\\s{2,}([^ \r\n]*[^0-9a-fA-F]+[^ \r\n]*)$", Pattern.MULTILINE);
 //        dump = dump.replace("\\s{5,}.*$", "");// 把具体内容去除
         dump = reg.matcher(dump).replaceAll("");
         String[] lines = dump.split("[\n\r]+");
@@ -117,7 +118,16 @@ payload: 0x01
     private PacketData dumpBytesToData(String dump)
     {
         ByteBuf buf = fromDumpBytes(dump);
-        System.out.println(ByteBufUtil.hexDump(buf));
+        try
+        {
+            System.out.println("原始内容");
+            System.out.println(dump);
+            System.out.println("解析结果");
+            HexDump.dump(buf.copy().array(), 0, System.out, 0);
+        } catch (IOException e)
+        {
+            e.printStackTrace();
+        }
         return readPacket(buf, new PacketData(), 0);
     }
 }
