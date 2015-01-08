@@ -122,7 +122,7 @@ payload: 0x01
         {
             System.out.println("原始内容");
             System.out.println(dump);
-            System.out.println("解析结果");
+            System.out.println("解析结果 长度:" + buf.readableBytes());
             HexDump.dump(buf.copy().array(), 0, System.out, 0);
         } catch (IOException e)
         {

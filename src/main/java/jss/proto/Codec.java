@@ -223,16 +223,15 @@ public class Codec
 
     public static ByteBuf string_nul(ByteBuf buf)
     {
-        int i = buf.indexOf(buf.readerIndex(), buf.readableBytes(), (byte) 0);
-        Preconditions.checkArgument(i >= 0);
-        i = i - buf.readerIndex();
-        if (i == 0)
+        int size = buf.indexOf(buf.readerIndex(), buf.readableBytes() + buf.readerIndex(), (byte) 0);
+        Preconditions.checkArgument(size >= 0);
+        size = size - buf.readerIndex();
+        if (size == 0)
         {
             return buf.alloc().buffer(0);
         }
         // do not read the null
-        i--;
-        ByteBuf result = string_fix(buf, buf.readerIndex() - i);
+        ByteBuf result = string_fix(buf, size);
         buf.readByte();// consume the null byte
         return result;
     }
