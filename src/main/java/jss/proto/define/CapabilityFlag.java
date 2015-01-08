@@ -212,8 +212,6 @@ public enum CapabilityFlag implements IsInteger, Protocol
 
     CLIENT_REMEMBER_OPTIONS(1 << 31),
 
-    CAN_CLIENT_COMPRESS(0),
-
     CLIENT_ALL_FLAGS(Values.or(
             CLIENT_LONG_PASSWORD
             , CLIENT_FOUND_ROWS
@@ -245,7 +243,9 @@ public enum CapabilityFlag implements IsInteger, Protocol
     CLIENT_BASIC_FLAGS(
             ((CLIENT_ALL_FLAGS.get() & ~CLIENT_SSL.get())
                     & ~CLIENT_COMPRESS.get())
-                    & ~CLIENT_SSL_VERIFY_SERVER_CERT.get()),;
+                    & ~CLIENT_SSL_VERIFY_SERVER_CERT.get()),
+
+    CLIENT_SESSION_TRACK(0);
 
     private final int flag;
 

@@ -1,4 +1,4 @@
-package jss.proto.packet.repl;
+package jss.proto.packet.replication;
 
 import jss.proto.define.Command;
 import jss.proto.packet.AbstractProtocolText;

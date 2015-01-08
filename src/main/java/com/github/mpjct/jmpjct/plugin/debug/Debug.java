@@ -6,8 +6,8 @@ package com.github.mpjct.jmpjct.plugin.debug;
  */
 
 import com.github.mpjct.jmpjct.Engine;
-import com.github.mpjct.jmpjct.mysql.proto.Flags;
 import com.github.mpjct.jmpjct.mysql.proto.Packet;
+import com.github.mpjct.jmpjct.mysql.proto.define.Flags;
 import com.github.mpjct.jmpjct.plugin.PluginAdapter;
 import java.io.IOException;
 import java.util.ArrayList;

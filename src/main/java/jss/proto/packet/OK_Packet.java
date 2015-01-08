@@ -1,5 +1,7 @@
 package jss.proto.packet;
 
+import io.netty.buffer.ByteBuf;
+
 /**
  * An OK packet is sent from the server to the client to signal successful completion of a command.
  * <p/>
@@ -40,4 +42,7 @@ public class OK_Packet implements Packet
     public long lastInsertId = 0;
     public long statusFlags = 0;
     public long warnings = 0;
+
+    public ByteBuf info;
+    public ByteBuf sessionStateChanges;
 }

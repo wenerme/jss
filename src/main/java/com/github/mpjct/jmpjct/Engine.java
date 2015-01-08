@@ -5,9 +5,9 @@ package com.github.mpjct.jmpjct;
  * Calling plugins as needed
  */
 
-import com.github.mpjct.jmpjct.mysql.proto.Flags;
 import com.github.mpjct.jmpjct.mysql.proto.Handshake;
 import com.github.mpjct.jmpjct.mysql.proto.HandshakeResponse;
+import com.github.mpjct.jmpjct.mysql.proto.define.Flags;
 import com.github.mpjct.jmpjct.plugin.PluginAdapter;
 import java.io.BufferedInputStream;
 import java.io.IOException;

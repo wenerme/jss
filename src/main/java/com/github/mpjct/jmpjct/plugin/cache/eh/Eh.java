@@ -1,23 +1,23 @@
 package com.github.mpjct.jmpjct.plugin.cache.eh;
 
+import com.github.mpjct.jmpjct.Engine;
+import com.github.mpjct.jmpjct.JMP;
+import com.github.mpjct.jmpjct.mysql.proto.Column;
+import com.github.mpjct.jmpjct.mysql.proto.ERR;
+import com.github.mpjct.jmpjct.mysql.proto.OK;
+import com.github.mpjct.jmpjct.mysql.proto.ResultSet;
+import com.github.mpjct.jmpjct.mysql.proto.Row;
+import com.github.mpjct.jmpjct.mysql.proto.define.Flags;
 import com.github.mpjct.jmpjct.plugin.PluginAdapter;
 import com.github.mpjct.jmpjct.util.IO;
 import java.util.ArrayList;
 import java.util.List;
-import org.apache.log4j.Logger;
-import net.sf.ehcache.Ehcache;
 import net.sf.ehcache.CacheManager;
+import net.sf.ehcache.Ehcache;
 import net.sf.ehcache.Element;
 import net.sf.ehcache.Statistics;
 import net.sf.ehcache.terracotta.TerracottaNotRunningException;
-import com.github.mpjct.jmpjct.JMP;
-import com.github.mpjct.jmpjct.Engine;
-import com.github.mpjct.jmpjct.mysql.proto.Flags;
-import com.github.mpjct.jmpjct.mysql.proto.ERR;
-import com.github.mpjct.jmpjct.mysql.proto.OK;
-import com.github.mpjct.jmpjct.mysql.proto.ResultSet;
-import com.github.mpjct.jmpjct.mysql.proto.Column;
-import com.github.mpjct.jmpjct.mysql.proto.Row;
+import org.apache.log4j.Logger;
 
 public class Eh extends PluginAdapter
 {

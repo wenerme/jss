@@ -4,14 +4,13 @@ package com.github.mpjct.jmpjct.plugin.example;
  * Example plugin. Return a fake result set for every query
  */
 
+import com.github.mpjct.jmpjct.Engine;
+import com.github.mpjct.jmpjct.mysql.proto.Column;
+import com.github.mpjct.jmpjct.mysql.proto.ResultSet;
+import com.github.mpjct.jmpjct.mysql.proto.Row;
+import com.github.mpjct.jmpjct.mysql.proto.define.Flags;
 import com.github.mpjct.jmpjct.plugin.PluginAdapter;
 import org.apache.log4j.Logger;
-import com.github.mpjct.jmpjct.Engine;
-
-import com.github.mpjct.jmpjct.mysql.proto.Flags;
-import com.github.mpjct.jmpjct.mysql.proto.ResultSet;
-import com.github.mpjct.jmpjct.mysql.proto.Column;
-import com.github.mpjct.jmpjct.mysql.proto.Row;
 
 public class ResultSetExample extends PluginAdapter
 {

@@ -1,6 +1,6 @@
 package jss.proto.packet.text;
 
-import com.github.mpjct.jmpjct.mysql.proto.Flags;
+import com.github.mpjct.jmpjct.mysql.proto.define.Flags;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableMap;
@@ -9,10 +9,10 @@ import java.util.HashMap;
 import java.util.Map;
 import jss.proto.define.Command;
 import jss.proto.packet.ProtocolText;
-import jss.proto.packet.repl.COM_BINLOG_DUMP;
-import jss.proto.packet.repl.COM_BINLOG_DUMP_GTID;
-import jss.proto.packet.repl.COM_CONNECT_OUT;
-import jss.proto.packet.repl.COM_REGISTER_SLAVE;
+import jss.proto.packet.replication.COM_BINLOG_DUMP;
+import jss.proto.packet.replication.COM_BINLOG_DUMP_GTID;
+import jss.proto.packet.replication.COM_CONNECT_OUT;
+import jss.proto.packet.replication.COM_REGISTER_SLAVE;
 import jss.util.Values;
 import lombok.extern.slf4j.Slf4j;
 
@@ -31,13 +31,13 @@ public class Commands
     public static final COM_PING COM_PING = new COM_PING();
     public static final COM_TIME COM_TIME = new COM_TIME();
     public static final COM_DELAYED_INSERT COM_DELAYED_INSERT = new COM_DELAYED_INSERT();
-    public static final jss.proto.packet.repl.COM_BINLOG_DUMP COM_BINLOG_DUMP = new COM_BINLOG_DUMP();
+    public static final jss.proto.packet.replication.COM_BINLOG_DUMP COM_BINLOG_DUMP = new COM_BINLOG_DUMP();
     public static final COM_TABLE_DUMP COM_TABLE_DUMP = new COM_TABLE_DUMP();
-    public static final jss.proto.packet.repl.COM_CONNECT_OUT COM_CONNECT_OUT = new COM_CONNECT_OUT();
-    public static final jss.proto.packet.repl.COM_REGISTER_SLAVE COM_REGISTER_SLAVE = new COM_REGISTER_SLAVE();
+    public static final jss.proto.packet.replication.COM_CONNECT_OUT COM_CONNECT_OUT = new COM_CONNECT_OUT();
+    public static final jss.proto.packet.replication.COM_REGISTER_SLAVE COM_REGISTER_SLAVE = new COM_REGISTER_SLAVE();
     public static final COM_STMT_FETCH COM_STMT_FETCH = new COM_STMT_FETCH();
     public static final COM_DAEMON COM_DAEMON = new COM_DAEMON();
-    public static final jss.proto.packet.repl.COM_BINLOG_DUMP_GTID COM_BINLOG_DUMP_GTID = new COM_BINLOG_DUMP_GTID();
+    public static final jss.proto.packet.replication.COM_BINLOG_DUMP_GTID COM_BINLOG_DUMP_GTID = new COM_BINLOG_DUMP_GTID();
     public static final COM_RESET_CONNECTION COM_RESET_CONNECTION = new COM_RESET_CONNECTION();
     private static final Map<Integer, ProtocolText> COMMAND_TO_INSTANCE;
     private static final Map<Byte, Class<? extends ProtocolText>> COMMAND_TO_TYPE;

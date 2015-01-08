@@ -1,6 +1,6 @@
 package jss.proto.packet;
 
-import com.github.mpjct.jmpjct.mysql.proto.Flags;
+import com.github.mpjct.jmpjct.mysql.proto.define.Flags;
 
 public class HandshakeV10 implements Packet
 {

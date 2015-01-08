@@ -1,11 +1,24 @@
 package com.github.mpjct.jmpjct.mysql.proto;
 
+import com.github.mpjct.jmpjct.mysql.proto.define.Flags;
 import java.util.ArrayList;
-import org.apache.log4j.Logger;
 
 public class EOF extends Packet {
     public long statusFlags = 0;
     public long warnings = 0;
+
+    public static EOF loadFromPacket(byte[] packet)
+    {
+        EOF obj = new EOF();
+        Proto proto = new Proto(packet, 3);
+
+        obj.sequenceId = proto.get_fixed_int(1);
+        proto.get_filler(1);
+        obj.warnings = proto.get_fixed_int(2);
+        obj.statusFlags = proto.get_fixed_int(2);
+
+        return obj;
+    }
     
     public void setStatusFlag(long flag) {
         this.statusFlags |= flag;
@@ -25,23 +38,11 @@ public class EOF extends Packet {
     
     public ArrayList<byte[]> getPayload() {
         ArrayList<byte[]> payload = new ArrayList<byte[]>();
-        
+
         payload.add(Proto.build_byte(Flags.EOF));
         payload.add(Proto.build_fixed_int(2, this.warnings));
         payload.add(Proto.build_fixed_int(2, this.statusFlags));
-        
+
         return payload;
-    }
-    
-    public static EOF loadFromPacket(byte[] packet) {
-        EOF obj = new EOF();
-        Proto proto = new Proto(packet, 3);
-        
-        obj.sequenceId = proto.get_fixed_int(1);
-        proto.get_filler(1);
-        obj.warnings = proto.get_fixed_int(2);
-        obj.statusFlags = proto.get_fixed_int(2);
-        
-        return obj;
     }
 }

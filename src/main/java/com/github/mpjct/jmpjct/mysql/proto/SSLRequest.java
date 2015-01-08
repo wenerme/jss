@@ -1,12 +1,25 @@
 package com.github.mpjct.jmpjct.mysql.proto;
 
+import com.github.mpjct.jmpjct.mysql.proto.define.Flags;
 import java.util.ArrayList;
-import org.apache.log4j.Logger;
 
 public class SSLRequest extends Packet {
     public long capabilityFlags = Flags.CLIENT_PROTOCOL_41;
     public long maxPacketSize = 0;
     public long characterSet = 0;
+
+    public static HandshakeResponse loadFromPacket(byte[] packet)
+    {
+        HandshakeResponse obj = new HandshakeResponse();
+        Proto proto = new Proto(packet, 3);
+
+        obj.capabilityFlags = proto.get_fixed_int(4);
+        obj.maxPacketSize = proto.get_fixed_int(4);
+        obj.characterSet = proto.get_fixed_int(1);
+        proto.get_filler(23);
+
+        return obj;
+    }
 
     public void setCapabilityFlag(long flag) {
         this.capabilityFlags |= flag;
@@ -30,20 +43,8 @@ public class SSLRequest extends Packet {
         payload.add( Proto.build_fixed_int(4, this.capabilityFlags));
         payload.add( Proto.build_fixed_int(4, this.maxPacketSize));
         payload.add( Proto.build_fixed_int(1, this.characterSet));
-        payload.add( Proto.build_filler(23));
+        payload.add(Proto.build_filler(23));
 
         return payload;
-    }
-
-    public static HandshakeResponse loadFromPacket(byte[] packet) {
-        HandshakeResponse obj = new HandshakeResponse();
-        Proto proto = new Proto(packet, 3);
-
-        obj.capabilityFlags = proto.get_fixed_int(4);
-        obj.maxPacketSize = proto.get_fixed_int(4);
-        obj.characterSet = proto.get_fixed_int(1);
-        proto.get_filler(23);
-
-        return obj;
     }
 }

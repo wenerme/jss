@@ -1,9 +1,7 @@
 package com.github.mpjct.jmpjct.mysql.proto;
 
+import com.github.mpjct.jmpjct.mysql.proto.define.Flags;
 import java.util.ArrayList;
-import org.apache.log4j.Logger;
-import com.github.mpjct.jmpjct.mysql.proto.Packet;
-import com.github.mpjct.jmpjct.mysql.proto.Flags;
 
 public class Row extends Packet {
     public int type = Flags.ROW_TYPE_TEXT;
@@ -14,10 +12,6 @@ public class Row extends Packet {
     
     public Row (String data1) {
         this.addData(data1);
-    }
-    
-    public void addData(String data) {
-        this.data.add(data);
     }
     
     public Row (String data1, Integer data2) {
@@ -44,6 +38,21 @@ public class Row extends Packet {
         this.addData(data1);
         this.addData(data2);
     }
+
+    public static Row loadFromPacket(byte[] packet)
+    {
+        Row obj = new Row();
+        Proto proto = new Proto(packet, 3);
+
+        obj.sequenceId = proto.get_fixed_int(1);
+
+        return obj;
+    }
+
+    public void addData(String data)
+    {
+        this.data.add(data);
+    }
     
     public void addData(Integer data) {
         this.data.add(Integer.toString(data));
@@ -56,19 +65,19 @@ public class Row extends Packet {
     public void addData(float data) {
         this.data.add(String.valueOf(data));
     }
+
+    // Add other addData for other types here
     
     public void addData(boolean data) {
         this.data.add(String.valueOf(data));
     }
     
-    // Add other addData for other types here
-    
     public ArrayList<byte[]> getPayload() {
         ArrayList<byte[]> payload = new ArrayList<byte[]>();
-        
+
         for (Object obj: this.data) {
             switch (this.type) {
-                case Flags.ROW_TYPE_TEXT: 
+                case Flags.ROW_TYPE_TEXT:
                     if (obj instanceof String)
                         payload.add(Proto.build_lenenc_str((String)obj));
                     else if (obj instanceof Integer || obj == null)
@@ -83,16 +92,7 @@ public class Row extends Packet {
                     break;
             }
         }
-        
+
         return payload;
-    }
-    
-    public static Row loadFromPacket(byte[] packet) {
-        Row obj = new Row();
-        Proto proto = new Proto(packet, 3);
-        
-        obj.sequenceId = proto.get_fixed_int(1);
-        
-        return obj;
     }
 }

@@ -1,7 +1,10 @@
 package com.github.mpjct.jmpjct.mysql.proto;
 
-import org.junit.*;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+
+import com.github.mpjct.jmpjct.mysql.proto.define.Flags;
+import org.junit.Test;
 
 public class EOFTest {
     @Test

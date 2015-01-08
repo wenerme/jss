@@ -8,37 +8,38 @@ package com.github.mpjct.jmpjct.mysql.proto;
  *
  */
 
+import com.github.mpjct.jmpjct.mysql.proto.define.Flags;
 import java.util.ArrayList;
-import org.apache.log4j.Logger;
 
 public class ERR extends Packet {
     public long errorCode = 0;
     public String sqlState = "HY000";
     public String errorMessage = "";
-    
-    public ArrayList<byte[]> getPayload() {
-        ArrayList<byte[]> payload = new ArrayList<byte[]>();
-        
-        payload.add(Proto.build_byte(Flags.ERR));
-        payload.add(Proto.build_fixed_int(2, this.errorCode));
-        payload.add(Proto.build_byte((byte)'#'));
-        payload.add(Proto.build_fixed_str(5, this.sqlState));
-        payload.add(Proto.build_fixed_str(this.errorMessage.length(), this.errorMessage));
-        
-        return payload;
-    }
-    
-    public static ERR loadFromPacket(byte[] packet) {
+
+    public static ERR loadFromPacket(byte[] packet)
+    {
         ERR obj = new ERR();
         Proto proto = new Proto(packet, 3);
-        
+
         obj.sequenceId = proto.get_fixed_int(1);
         proto.get_filler(1);
         obj.errorCode = proto.get_fixed_int(2);
         proto.get_filler(1);
         obj.sqlState = proto.get_fixed_str(5);
         obj.errorMessage = proto.get_eop_str();
-        
+
         return obj;
+    }
+    
+    public ArrayList<byte[]> getPayload() {
+        ArrayList<byte[]> payload = new ArrayList<byte[]>();
+
+        payload.add(Proto.build_byte(Flags.ERR));
+        payload.add(Proto.build_fixed_int(2, this.errorCode));
+        payload.add(Proto.build_byte((byte) '#'));
+        payload.add(Proto.build_fixed_str(5, this.sqlState));
+        payload.add(Proto.build_fixed_str(this.errorMessage.length(), this.errorMessage));
+
+        return payload;
     }
 }
