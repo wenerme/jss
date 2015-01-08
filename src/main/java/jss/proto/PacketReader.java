@@ -26,7 +26,7 @@ public class PacketReader
 
     public static HandshakeResponse41 readPacket(ByteBuf buf, HandshakeResponse41 packet, int flags)
     {
-        packet.capabilityFlags = int4(buf);
+        flags = packet.capabilityFlags = int4(buf);
         packet.maxPacketSize = int4(buf);
         packet.characterSet = int1(buf);
         packet.reserved = string_fix(buf, 23);

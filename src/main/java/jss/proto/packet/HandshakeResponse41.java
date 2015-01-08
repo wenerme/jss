@@ -2,6 +2,7 @@ package jss.proto.packet;
 
 import com.github.mpjct.jmpjct.mysql.proto.define.Flags;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufUtil;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
@@ -110,12 +111,13 @@ public class HandshakeResponse41 implements Packet
                 "capabilityFlags=" + capabilityFlags +
                 ", maxPacketSize=" + maxPacketSize +
                 ", characterSet=" + characterSet +
-                ", reserved=" + reserved +
-                ", username=" + username.toString(StandardCharsets.UTF_8) +
+                ", reserved=" + (reserved == null ? "null" : ByteBufUtil.hexDump(reserved)) +
+                ", username=" + (username == null ? "null" : username.toString(StandardCharsets.UTF_8)) +
                 ", authResponseLen=" + authResponseLen +
-                ", authResponse=" + authResponse.toString(StandardCharsets.UTF_8) +
-                ", database=" + database.toString(StandardCharsets.UTF_8) +
-                ", authPluginName=" + authPluginName.toString(StandardCharsets.UTF_8) +
+                ", authResponse=" + (authResponse == null ? "null" : authResponse.toString(StandardCharsets.UTF_8)) +
+                ", database=" + (database == null ? "null" : database.toString(StandardCharsets.UTF_8)) +
+                ", authPluginName=" +
+                (authPluginName == null ? "null" : authPluginName.toString(StandardCharsets.UTF_8)) +
                 ", keyValuesLength=" + keyValuesLength +
                 ", attributes=" + attributes +
                 '}';
