@@ -8,10 +8,10 @@ package jss.proto.packet;
  *
  * <b>Payload</b>
  * Type	Name	Description
- * int<1>	header	[fe] EOF header
+ * int&lt;1>	header	[fe] EOF header
  * if capabilities & CLIENT_PROTOCOL_41 {
- * int<2>	warnings	number of warnings
- * int<2>	status_flags	Status Flags
+ * int&lt;2>	warnings	number of warnings
+ * int&lt;2>	status_flags	Status Flags
  * }
  *
  * <b>Example</b>
@@ -21,4 +21,7 @@ package jss.proto.packet;
  */
 public class EOF_Packet implements Packet
 {
+    public int header = 0xfe;
+    public int warnings = 0;
+    public int statusFlags = 0;
 }
