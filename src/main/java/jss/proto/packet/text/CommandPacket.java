@@ -5,14 +5,14 @@ import jss.proto.packet.ProtocolText;
 import jss.util.IsInteger;
 import jss.util.Values;
 
-public class AbstractProtocolText implements ProtocolText
+public class CommandPacket implements ProtocolText
 {
     public final int expected;
     public int command;
 
-    public AbstractProtocolText(int command) {expected = this.command = command;}
+    public CommandPacket(int command) {expected = this.command = command;}
 
-    public AbstractProtocolText(IsInteger command)
+    public CommandPacket(IsInteger command)
     {
         this(command.get());
     }
@@ -23,17 +23,11 @@ public class AbstractProtocolText implements ProtocolText
     }
 
     @Override
-    public int command()
-    {
-        return command;
-    }
-
-    @Override
     public String toString()
     {
-        return "ProtocolText{" +
+        return "CommandPacket{" +
                 "expected=" + expected + "->" + Values.fromValue(Command.class, expected) +
-                ", command=" + command +
+                ", command=" + expected + "->" + Values.fromValue(Command.class, expected) +
                 '}';
     }
 }

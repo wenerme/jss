@@ -6,7 +6,7 @@ import jss.proto.define.Command;
 /**
  * @see jss.proto.define.Command#COM_SHUTDOWN
  */
-public class COM_SHUTDOWN extends AbstractProtocolText
+public class COM_SHUTDOWN extends CommandPacket
 {
     public long shutdownType = Flags.SHUTDOWN_DEFAULT;
 

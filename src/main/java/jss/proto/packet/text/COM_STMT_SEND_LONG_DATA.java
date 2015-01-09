@@ -5,7 +5,7 @@ import jss.proto.define.Command;
 /**
  * @see jss.proto.define.Command#COM_STMT_SEND_LONG_DATA
  */
-public class COM_STMT_SEND_LONG_DATA extends AbstractProtocolText
+public class COM_STMT_SEND_LONG_DATA extends CommandPacket
 {
     public byte[] data;
 

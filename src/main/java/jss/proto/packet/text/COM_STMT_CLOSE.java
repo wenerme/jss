@@ -5,7 +5,7 @@ import jss.proto.define.Command;
 /**
  * @see jss.proto.define.Command#COM_STMT_CLOSE
  */
-public class COM_STMT_CLOSE extends AbstractProtocolText
+public class COM_STMT_CLOSE extends CommandPacket
 {
     public byte[] data;
 

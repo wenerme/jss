@@ -31,6 +31,7 @@ public interface CapabilityFlags
     public static final int CLIENT_SSL_VERIFY_SERVER_CERT = 1 << 30;
     public static final int CLIENT_REMEMBER_OPTIONS = 1 << 31;
 
+
     public static final int CLIENT_ALL_FLAGS = (
             CLIENT_LONG_PASSWORD
                     | CLIENT_FOUND_ROWS
@@ -66,4 +67,15 @@ public interface CapabilityFlags
 
 
     public static final int CLIENT_SESSION_TRACK = 0x00800000;
+    /**
+     * <pre>
+     * Server
+     * can send OK after a Text Resultset
+     *
+     * Client
+     * expects a OK (instead of EOF) after the resultset rows of a Text Resultset.
+     * </pre>
+     */
+    public static final int CLIENT_DEPRECATE_EOF = 0x01000000;
+
 }

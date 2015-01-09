@@ -12,18 +12,25 @@ import jss.proto.packet.EOF_Packet;
 import jss.proto.packet.ERR_Packet;
 import jss.proto.packet.OK_Packet;
 import jss.proto.packet.PacketData;
-import jss.proto.packet.ProtocolText;
 import jss.proto.packet.connection.AuthSwitchRequest;
 import jss.proto.packet.connection.HandshakeResponse41;
 import jss.proto.packet.connection.HandshakeV10;
 import jss.proto.packet.text.ColumnDefinition320;
 import jss.proto.packet.text.ColumnDefinition41;
+import jss.proto.packet.text.CommandPacket;
+import jss.proto.packet.text.ResultsetRow;
 
 /**
  * 包编码
  */
 public class PacketCodec
 {
+
+
+    public static ResultsetRow readPacket(ByteBuf buf, ResultsetRow resultsetRow, int flags)
+    {
+        return null;
+    }
 
     public static AuthSwitchRequest readPacket(ByteBuf buf, AuthSwitchRequest packet, int flags)
     {
@@ -121,7 +128,7 @@ public class PacketCodec
         return packet;
     }
 
-    private static boolean hasMore(ByteBuf buf) {return buf.readableBytes() > 0;}
+    static boolean hasMore(ByteBuf buf) {return buf.readableBytes() > 0;}
 
     public static EOF_Packet readPacket(ByteBuf buf, EOF_Packet packet, int flags)
     {
@@ -178,7 +185,7 @@ public class PacketCodec
         return packet;
     }
 
-    private static boolean hasFlag(int flags, int flag) {return (flags & flag) > 0;}
+    static boolean hasFlag(int flags, int flag) {return (flags & flag) > 0;}
 
     public static PacketData readPacket(ByteBuf buf, PacketData packet, int flags)
     {
@@ -188,63 +195,61 @@ public class PacketCodec
         return packet;
     }
 
-    public static ColumnDefinition320 readPacket(ByteBuf buf, ColumnDefinition320 packet, int flags, ProtocolText command)
+    public static ColumnDefinition320 readPacket(ByteBuf buf, ColumnDefinition320 packet, int flags, CommandPacket command)
     {
-		packet.table = string_lenenc(buf);
-		packet.name = string_lenenc(buf);
-		packet.columnLengthFieldLength = (int) int_lenenc(buf);
-		packet.columnLength = int3(buf);
-		packet.typeFieldLength = (int) int_lenenc(buf);
-		packet.type = int1(buf);
-		if (hasFlag(flags, CLIENT_LONG_FLAG))
-		{
-			packet.flagsDecimalsFieldsLength = (int) int_lenenc(buf);
-			packet.flags = int2(buf);
-			packet.decimals = int1(buf);
-		} else
-		{
-			packet.flagsDecimalsFieldsLength = int1(buf);
-			packet.flags = int1(buf);
-			packet.decimals = int1(buf);
-		}
-		//TODO explain the meaning of this comman?
-        if (command.command() == Flags.COM_FIELD_LIST)
+        packet.table = string_lenenc(buf);
+        packet.name = string_lenenc(buf);
+        packet.columnLengthFieldLength = (int) int_lenenc(buf);
+        packet.columnLength = int3(buf);
+        packet.typeFieldLength = (int) int_lenenc(buf);
+        packet.type = int1(buf);
+        if (hasFlag(flags, CLIENT_LONG_FLAG))
         {
-			packet.defaultValuesLength = (int) int_lenenc(buf);
-			packet.defaultValues = Lists.newArrayList();
-			do
-			{
-				packet.defaultValues.add(string_lenenc(buf).toString(StandardCharsets.UTF_8));
-			} while (hasMore(buf));
-		}
-		return packet;
-	}
+            packet.flagsDecimalsFieldsLength = (int) int_lenenc(buf);
+            packet.flags = int2(buf);
+            packet.decimals = int1(buf);
+        } else
+        {
+            packet.flagsDecimalsFieldsLength = int1(buf);
+            packet.flags = int1(buf);
+            packet.decimals = int1(buf);
+        }
+        if (command.command == Flags.COM_FIELD_LIST)
+        {
+            packet.defaultValuesLength = (int) int_lenenc(buf);
+            packet.defaultValues = Lists.newArrayList();
+            do
+            {
+                packet.defaultValues.add(string_lenenc(buf).toString(StandardCharsets.UTF_8));
+            } while (hasMore(buf));
+        }
+        return packet;
+    }
 
-    public static ColumnDefinition41 readPacket(ByteBuf buf, ColumnDefinition41 packet, int flags, ProtocolText command)
+    public static ColumnDefinition41 readPacket(ByteBuf buf, ColumnDefinition41 packet, int flags, CommandPacket command)
     {
-		packet.catalog = string_lenenc(buf);
-		packet.schema = string_lenenc(buf);
-		packet.table = string_lenenc(buf);
-		packet.orgTable = string_lenenc(buf);
-		packet.name = string_lenenc(buf);
-		packet.orgName = string_lenenc(buf);
-		packet.fixedLengthFieldsLength = (int) int_lenenc(buf);
-		packet.characterSet = int2(buf);
-		packet.columnLength = int4(buf);
-		packet.type = int1(buf);
-		packet.flags = int2(buf);
-		packet.decimals = int1(buf);
-		packet.filler = int2(buf);
-		// TODO explain the meaning of this comman?
-        if (false && command.command() == Flags.COM_FIELD_LIST)
+        packet.catalog = string_lenenc(buf);
+        packet.schema = string_lenenc(buf);
+        packet.table = string_lenenc(buf);
+        packet.orgTable = string_lenenc(buf);
+        packet.name = string_lenenc(buf);
+        packet.orgName = string_lenenc(buf);
+        packet.fixedLengthFieldsLength = (int) int_lenenc(buf);
+        packet.characterSet = int2(buf);
+        packet.columnLength = int4(buf);
+        packet.type = int1(buf);
+        packet.flags = int2(buf);
+        packet.decimals = int1(buf);
+        packet.filler = int2(buf);
+        if (false && command.command == Flags.COM_FIELD_LIST)
         {
-			packet.defaultValuesLength = (int) int_lenenc(buf);
-			packet.defaultValues = Lists.newArrayList();
-			do
-			{
-				packet.defaultValues.add(string_lenenc(buf).toString(StandardCharsets.UTF_8));
-			} while (hasMore(buf));
-		}
-		return packet;
-	}
+            packet.defaultValuesLength = (int) int_lenenc(buf);
+            packet.defaultValues = Lists.newArrayList();
+            do
+            {
+                packet.defaultValues.add(string_lenenc(buf).toString(StandardCharsets.UTF_8));
+            } while (hasMore(buf));
+        }
+        return packet;
+    }
 }

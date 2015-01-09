@@ -5,7 +5,7 @@ import jss.proto.define.Command;
 /**
  * @see jss.proto.define.Command#COM_STMT_EXECUTE
  */
-public class COM_STMT_EXECUTE extends AbstractProtocolText
+public class COM_STMT_EXECUTE extends CommandPacket
 {
     public byte[] data;
 

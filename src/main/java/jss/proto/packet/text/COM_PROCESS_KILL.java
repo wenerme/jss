@@ -5,7 +5,7 @@ import jss.proto.define.Command;
 /**
  * @see jss.proto.define.Command#COM_PROCESS_KILL
  */
-public class COM_PROCESS_KILL extends AbstractProtocolText
+public class COM_PROCESS_KILL extends CommandPacket
 {
     public long connectionId = 0;
 

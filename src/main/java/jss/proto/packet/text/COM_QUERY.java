@@ -7,7 +7,7 @@ import jss.proto.util.Dumper;
 /**
  * @see jss.proto.define.Command#COM_QUERY
  */
-public class COM_QUERY extends AbstractProtocolText
+public class COM_QUERY extends CommandPacket
 {
     public ByteBuf query;
 

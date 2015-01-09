@@ -7,7 +7,6 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import jss.proto.packet.ProtocolBinary;
 import jss.proto.packet.binary.BinaryValue;
 import jss.proto.packet.binary.DateValue;
 import jss.proto.packet.binary.Field;
@@ -26,6 +25,7 @@ public class Codec
 
     public static final Charset CHARSET = StandardCharsets.UTF_8;
 
+    //region 字段类型编码
 
     public static TimeValue readTime(ByteBuf buf, TimeValue packet)
     {
@@ -131,10 +131,7 @@ public class Codec
         return field;
     }
 
-    public static ProtocolBinary readBinary(ByteBuf buf, int type)
-    {
-        return null;
-    }
+    //endregion
 
     // region 整数类型操作
 
@@ -396,11 +393,6 @@ public class Codec
     }
 
     // endregion
-
-    public static void main(String[] args)
-    {
-        ByteBuf buf = Unpooled.buffer();
-    }
 
     public static enum Type
     {

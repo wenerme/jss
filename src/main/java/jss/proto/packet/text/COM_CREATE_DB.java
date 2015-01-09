@@ -5,7 +5,7 @@ import jss.proto.define.Command;
 /**
  * @see jss.proto.define.Command#COM_CREATE_DB
  */
-public class COM_CREATE_DB extends AbstractProtocolText
+public class COM_CREATE_DB extends CommandPacket
 {
     public String schema = "";
 

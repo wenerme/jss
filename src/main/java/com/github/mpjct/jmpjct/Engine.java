@@ -178,8 +178,9 @@ public class Engine implements Runnable
 
             logger.info("Exiting thread.");
             clientSocket.close();
-        } catch (Exception e)
+        } catch (Throwable e)
         {
+            logger.fatal(e);
             e.printStackTrace();
         } finally
         {

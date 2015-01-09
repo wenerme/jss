@@ -4,6 +4,7 @@ import static jss.proto.codec.PacketReader.readPacketPayload;
 
 import com.github.mpjct.jmpjct.Engine;
 import com.github.mpjct.jmpjct.plugin.PluginAdapter;
+import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import java.io.IOException;
 import java.nio.ByteOrder;
@@ -101,13 +102,13 @@ public class DumpPacket extends PluginAdapter
 
     private void dumpCommand(Engine context)
     {
+        byte[] packet = context.packet;
+        System.out.print(Dumper.hexDump(packet));
+        ByteBuf buf = Unpooled.wrappedBuffer(context.packet).order(ByteOrder.LITTLE_ENDIAN);
+        PacketData data = PacketCodec.readPacket(buf, new PacketData(), 0);
         try
         {
-            byte[] packet = context.packet;
-            System.out.print(Dumper.hexDump(packet));
-            PacketData data = PacketCodec.readPacket(Unpooled.wrappedBuffer(context.packet)
-                                                             .order(ByteOrder.LITTLE_ENDIAN), new PacketData(), 0);
-            System.out.println(PacketReader.readTextPacket(data.payload, (int) context.handshake.capabilityFlags));
+            System.out.println(PacketReader.readCommandPacket(data.payload, (int) context.handshake.capabilityFlags));
             System.out.println();
 
         } catch (Exception e)

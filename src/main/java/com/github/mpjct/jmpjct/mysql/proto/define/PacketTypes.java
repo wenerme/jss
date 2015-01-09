@@ -35,8 +35,8 @@ public interface PacketTypes
     public static final byte COM_STMT_FETCH = (byte) 0x1c;
     public static final byte COM_DAEMON = (byte) 0x1d; // deprecated
     public static final byte COM_BINLOG_DUMP_GTID = (byte) 0x1e;
-    public static final byte COM_END = (byte) 0x1f; // Must be last
     public static final byte COM_RESET_CONNECTION = (byte) 0x1f; // Must be last
+    public static final byte COM_END = (byte) 0x1f; // Must be last
 
     public static final byte OK = (byte) 0x00;
     public static final byte ERR = (byte) 0xff;

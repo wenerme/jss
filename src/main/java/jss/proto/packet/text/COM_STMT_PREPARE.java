@@ -5,7 +5,7 @@ import jss.proto.define.Command;
 /**
  * @see jss.proto.define.Command#COM_STMT_PREPARE
  */
-public class COM_STMT_PREPARE extends AbstractProtocolText
+public class COM_STMT_PREPARE extends CommandPacket
 {
     public String query = "";
 
