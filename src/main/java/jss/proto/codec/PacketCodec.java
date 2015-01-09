@@ -64,17 +64,15 @@ public class PacketCodec
         if (hasFlag(flags, CLIENT_CONNECT_ATTRS))
         {
             packet.keyValuesLength = int_lenenc(buf);
-//            packet.key = string_lenenc(buf);
-//            packet.value = string_lenenc(buf);
-
             packet.attributes = Maps.newHashMap();
+
             if (hasMore(buf))
             {
                 do
                 {
-                    packet.attributes.put(
-                            string_lenenc(buf).toString(StandardCharsets.UTF_8),
-                            string_lenenc(buf).toString(StandardCharsets.UTF_8));
+                    String key = string_lenenc(buf).toString(StandardCharsets.UTF_8);
+                    String value = string_lenenc(buf).toString(StandardCharsets.UTF_8);
+                    packet.attributes.put(key, value);
                 } while (hasMore(buf));
             }
         }

@@ -106,13 +106,11 @@ public class Codec
         int i = buf.readByte();
 
         int size;
-
-        if (i == 0)
-            return 0;
         // 1 byte int
         if (i < 251)
         {
-            size = 1;
+//            size = 1;
+            return i;
         }
         // 2 byte int
         else if (i == 252)

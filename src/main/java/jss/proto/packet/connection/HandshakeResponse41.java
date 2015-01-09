@@ -84,6 +84,8 @@ import jss.proto.util.Dumper;
  * Note
  * If client wants to have a secure SSL connection and sets CLIENT_SSL flag it should first send the SSL Request Packet and only then, after establishing the secure connection, it should send the Handshake Response Packet.
  * </pre>
+ *
+ * @see <a href=http://dev.mysql.com/doc/internals/en/connection-phase-packets.html#packet-Protocol::HandshakeResponse41>HandshakeResponse41</a>
  */
 public class HandshakeResponse41 implements Packet
 {
