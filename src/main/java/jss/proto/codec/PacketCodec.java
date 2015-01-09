@@ -1,9 +1,7 @@
-package jss.proto;
+package jss.proto.codec;
 
 import static com.github.mpjct.jmpjct.mysql.proto.define.CapabilityFlags.*;
-import static com.github.mpjct.jmpjct.mysql.proto.define.Flags.CLIENT_SESSION_TRACK;
-import static com.github.mpjct.jmpjct.mysql.proto.define.Flags.CLIENT_TRANSACTIONS;
-import static jss.proto.Codec.*;
+import static jss.proto.codec.Codec.*;
 
 import com.github.mpjct.jmpjct.mysql.proto.define.Flags;
 import com.google.common.collect.Maps;
@@ -11,21 +9,29 @@ import io.netty.buffer.ByteBuf;
 import java.nio.charset.StandardCharsets;
 import jss.proto.packet.EOF_Packet;
 import jss.proto.packet.ERR_Packet;
-import jss.proto.packet.HandshakeResponse41;
-import jss.proto.packet.HandshakeV10;
 import jss.proto.packet.OK_Packet;
-import jss.proto.packet.Packet;
 import jss.proto.packet.PacketData;
-import lombok.extern.slf4j.Slf4j;
+import jss.proto.packet.connection.AuthSwitchRequest;
+import jss.proto.packet.connection.HandshakeResponse41;
+import jss.proto.packet.connection.HandshakeV10;
 
-@Slf4j
-public class PacketReader
+/**
+ * 包编码
+ */
+public class PacketCodec
 {
-    // ok,err,eof
 
+    public static AuthSwitchRequest readPacket(ByteBuf buf, AuthSwitchRequest packet, int flags)
+    {
+        packet.status = int1(buf);
+        packet.pluginName = string_nul(buf);
+        packet.authPluginData = string_eof(buf);
+        return packet;
+    }
 
     public static HandshakeResponse41 readPacket(ByteBuf buf, HandshakeResponse41 packet, int flags)
     {
+        // 这里使用的是解析出来的 flags
         flags = packet.capabilityFlags = int4(buf);
         packet.maxPacketSize = int4(buf);
         packet.characterSet = int1(buf);
@@ -83,7 +89,7 @@ public class PacketReader
         packet.connectionId = int4(buf);
         packet.challenge1 = string_fix(buf, 8);
         packet.filter = int1(buf);
-        packet.capabilityFlags = int2(buf);
+        flags = packet.capabilityFlags = int2(buf);
         if (hasMore(buf))
         {
             packet.characterSet = int1(buf);
@@ -178,10 +184,5 @@ public class PacketReader
         packet.sequenceId = Codec.int1(buf);
         packet.payload = Codec.string_var(buf, packet.payloadLength);
         return packet;
-    }
-
-    interface Reader<P extends Packet>
-    {
-        P readPacket(ByteBuf buf, P packet, int flags);
     }
 }

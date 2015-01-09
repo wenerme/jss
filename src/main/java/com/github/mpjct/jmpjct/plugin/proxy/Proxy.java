@@ -16,9 +16,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import jss.proto.define.CapabilityFlag;
-import jss.proto.define.StatusFlag;
-import jss.util.Values;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,10 +29,13 @@ public class Proxy extends PluginAdapter
     public Socket mysqlSocket = null;
     public InputStream mysqlIn = null;
     public OutputStream mysqlOut = null;
+    private byte[] packet;
+    private Engine context;
 
     public void init(Engine context) throws IOException, UnknownHostException
     {
         log.trace("init");
+        this.context = context;
 
         String[] phs = JMP.config.getProperty("proxyHosts").split(",");
         for (String ph : phs)
@@ -64,7 +64,7 @@ public class Proxy extends PluginAdapter
     public void read_handshake(Engine context) throws IOException
     {
         log.trace("read_handshake");
-        byte[] packet = Packet.read_packet(this.mysqlIn);
+        setPacket(Packet.read_packet(this.mysqlIn));
 
         context.handshake = Handshake.loadFromPacket(packet);
 
@@ -81,30 +81,6 @@ public class Proxy extends PluginAdapter
         context.buffer.add(context.handshake.toPacket());
     }
 
-    private void debugPacket(Handshake handshake)
-    {
-        if (log.isDebugEnabled())
-        {
-            log.debug("Read handshake \n" +
-                            "Capability: {}\n" +
-                            "Status: {}\n" +
-                            "protocolVersion: {}\n" +
-                            "serverVersion: {}\n" +
-                            "authPluginName: {}\n" +
-                            ""
-                    ,
-                    Values.asEnumSet(handshake.capabilityFlags, CapabilityFlag.class)
-                    , Values.asEnumSet(handshake.statusFlags, StatusFlag.class)
-                    , handshake.protocolVersion
-                    , handshake.serverVersion
-                    , handshake.authPluginName
-            );
-
-            log.debug(handshake.toString());
-
-        }
-    }
-
     public void send_handshake(Engine context) throws IOException
     {
         log.trace("send_handshake");
@@ -115,7 +91,7 @@ public class Proxy extends PluginAdapter
     public void read_auth(Engine context) throws IOException
     {
         log.trace("read_auth");
-        byte[] packet = Packet.read_packet(context.clientIn);
+        setPacket(Packet.read_packet(context.clientIn));
         context.buffer.add(packet);
 
         context.authReply = HandshakeResponse.loadFromPacket(packet);
@@ -144,7 +120,7 @@ public class Proxy extends PluginAdapter
     public void read_auth_result(Engine context) throws IOException
     {
         log.trace("read_auth_result");
-        byte[] packet = Packet.read_packet(this.mysqlIn);
+        setPacket(Packet.read_packet(this.mysqlIn));
         context.buffer.add(packet);
         if (Packet.getType(packet) != Flags.OK)
         {
@@ -164,7 +140,7 @@ public class Proxy extends PluginAdapter
         log.trace("read_query");
         context.bufferResultSet = false;
 
-        byte[] packet = Packet.read_packet(context.clientIn);
+        setPacket(Packet.read_packet(context.clientIn));
         context.buffer.add(packet);
 
         context.sequenceId = Packet.getSequenceId(packet);
@@ -208,7 +184,7 @@ public class Proxy extends PluginAdapter
     {
         log.trace("read_query_result");
 
-        byte[] packet = Packet.read_packet(this.mysqlIn);
+        setPacket(Packet.read_packet(this.mysqlIn));
         context.buffer.add(packet);
 
         context.sequenceId = Packet.getSequenceId(packet);
@@ -245,5 +221,11 @@ public class Proxy extends PluginAdapter
         {
             this.mysqlSocket.close();
         } catch (IOException e) {}
+    }
+
+    public void setPacket(byte[] packet)
+    {
+        this.packet = packet;
+        context.packet = packet;
     }
 }

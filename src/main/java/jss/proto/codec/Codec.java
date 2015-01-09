@@ -1,4 +1,4 @@
-package jss.proto;
+package jss.proto.codec;
 
 import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;

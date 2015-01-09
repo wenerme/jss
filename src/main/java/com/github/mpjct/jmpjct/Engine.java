@@ -58,6 +58,7 @@ public class Engine implements Runnable
 
     // Allow plugins to muck with the modes
     public int nextMode = Flags.MODE_INIT;
+    public byte[] packet;
 
     public Engine(int port, Socket clientSocket, ArrayList<PluginAdapter> plugins) throws IOException
     {
@@ -177,7 +178,10 @@ public class Engine implements Runnable
 
             logger.info("Exiting thread.");
             clientSocket.close();
-        } catch (IOException e) {} finally
+        } catch (Exception e)
+        {
+            e.printStackTrace();
+        } finally
         {
             try
             {

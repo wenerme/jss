@@ -1,7 +1,7 @@
 package jss.proto;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static jss.proto.PacketReader.readPacket;
+import static jss.proto.codec.PacketCodec.readPacket;
 import static org.junit.Assert.assertEquals;
 
 import com.github.mpjct.jmpjct.mysql.proto.define.Flags;
@@ -12,13 +12,15 @@ import java.nio.ByteOrder;
 import java.util.regex.Pattern;
 import jss.proto.packet.EOF_Packet;
 import jss.proto.packet.ERR_Packet;
-import jss.proto.packet.HandshakeResponse41;
 import jss.proto.packet.OK_Packet;
 import jss.proto.packet.PacketData;
+import jss.proto.packet.connection.AuthSwitchRequest;
+import jss.proto.packet.connection.HandshakeResponse41;
+import jss.proto.util.Dumper;
 import org.apache.commons.io.HexDump;
 import org.junit.Test;
 
-public class PacketReaderExampleTest implements Flags
+public class PacketReaderExampleTest extends JSSTest implements Flags
 {
     public static ByteBuf fromDumpBytes(String dump)
     {
@@ -41,6 +43,38 @@ public class PacketReaderExampleTest implements Flags
         return buf.order(ByteOrder.LITTLE_ENDIAN);
     }
 
+
+    @Test
+    public void testAuthSwitchRequest()
+    {
+        PacketData data = dumpBytesToData("2c 00 00 02 fe 6d 79 73    71 6c 5f 6e 61 74 69 76    ,....mysql_nativ\n" +
+                "65 5f 70 61 73 73 77 6f    72 64 00 7a 51 67 34 69    e_password.zQg4i\n" +
+                "36 6f 4e 79 36 3d 72 48    4e 2f 3e 2d 62 29 41 00    6oNy6=rHN>-b)A.");
+        AuthSwitchRequest authSwitchRequest = readPacket(data.payload, new AuthSwitchRequest(), 0);
+        assertEquals("mysql_native_password", Dumper.string(authSwitchRequest.pluginName));
+        System.out.println(authSwitchRequest);
+    }
+
+    @Test
+    public void testHandshakeResponse41_2()
+    {
+        PacketData data = dumpBytesToData("b2 00 00 01 85 a2 1e 00    00 00 00 40 08 00 00 00    ...........@....\n" +
+                "00 00 00 00 00 00 00 00    00 00 00 00 00 00 00 00    ................\n" +
+                "00 00 00 00 72 6f 6f 74    00 14 22 50 79 a2 12 d4    ....root..\"Py...\n" +
+                "e8 82 e5 b3 f4 1a 97 75    6b c8 be db 9f 80 6d 79    .......uk.....my\n" +
+                "73 71 6c 5f 6e 61 74 69    76 65 5f 70 61 73 73 77    sql_native_passw\n" +
+                "6f 72 64 00 61 03 5f 6f    73 09 64 65 62 69 61 6e    ord.a._os.debian\n" +
+                "36 2e 30 0c 5f 63 6c 69    65 6e 74 5f 6e 61 6d 65    6.0._client_name\n" +
+                "08 6c 69 62 6d 79 73 71    6c 04 5f 70 69 64 05 32    .libmysql._pid.2\n" +
+                "32 33 34 34 0f 5f 63 6c    69 65 6e 74 5f 76 65 72    2344._client_ver\n" +
+                "73 69 6f 6e 08 35 2e 36    2e 36 2d 6d 39 09 5f 70    sion.5.6.6-m9._p\n" +
+                "6c 61 74 66 6f 72 6d 06    78 38 36 5f 36 34 03 66    latform.x86_64.f\n" +
+                "6f 6f 03 62 61 72                                     oo.bar");
+
+        HandshakeResponse41 handshakeResponse41 = readPacket(data.payload, new HandshakeResponse41(), CLIENT_PROTOCOL_41 | CLIENT_PLUGIN_AUTH | CLIENT_SECURE_CONNECTION | CLIENT_CONNECT_WITH_DB);
+
+        System.out.println(handshakeResponse41);
+    }
 
     @Test
     public void testHandshakeResponse41_1()
@@ -90,7 +124,7 @@ payload: 0x01
     {
         String dump =
                 "17 00 00 01 ff 48 04 23    48 59 30 30 30 4e 6f 20       .....H.#HY000No\n" +
-                "74 61 62 6c 65 73 20 75    73 65 64                      tables used";
+                        "74 61 62 6c 65 73 20 75    73 65 64                      tables used";
         PacketData data = dumpBytesToData(dump);
         ERR_Packet errPacket = readPacket(data.payload, new ERR_Packet(), CLIENT_PROTOCOL_41);
         assertEquals("#", errPacket.sqlStateMarker.toString(UTF_8));
@@ -115,14 +149,14 @@ payload: 0x01
 
     }
 
-    public PacketData dumpBytesToData(String dump)
+    private PacketData dumpBytesToData(String dump)
     {
         ByteBuf buf = fromDumpBytes(dump);
         try
         {
             System.out.println("原始内容");
             System.out.println(dump);
-            System.out.println("解析结果");
+            System.out.println("解析结果 长度:" + buf.readableBytes());
             HexDump.dump(buf.copy().array(), 0, System.out, 0);
         } catch (IOException e)
         {

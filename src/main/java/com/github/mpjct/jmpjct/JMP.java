@@ -10,10 +10,7 @@ import com.github.mpjct.jmpjct.util.IO;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
-import jss.proto.define.CapabilityFlag;
-import jss.proto.define.Command;
-import jss.proto.define.StatusFlag;
-import jss.util.Values;
+import jss.server.JSSInitializer;
 import org.apache.log4j.Logger;
 
 public class JMP
@@ -22,9 +19,7 @@ public class JMP
 
     static
     {
-        Values.cache(CapabilityFlag.class);
-        Values.cache(StatusFlag.class);
-        Values.cache(Command.class);
+        JSSInitializer.initialize();
     }
 
     public static void main(String[] args) throws IOException
