@@ -1,12 +1,29 @@
 package jss.proto.codec;
 
-import static com.github.mpjct.jmpjct.mysql.proto.define.CapabilityFlags.*;
-import static jss.proto.codec.Codec.*;
-
-import com.github.mpjct.jmpjct.mysql.proto.define.Flags;
-import com.google.common.collect.Maps;
+import static com.github.mpjct.jmpjct.mysql.proto.define.CapabilityFlags.CLIENT_CONNECT_ATTRS;
+import static com.github.mpjct.jmpjct.mysql.proto.define.CapabilityFlags.CLIENT_CONNECT_WITH_DB;
+import static com.github.mpjct.jmpjct.mysql.proto.define.CapabilityFlags.CLIENT_LONG_FLAG;
+import static com.github.mpjct.jmpjct.mysql.proto.define.CapabilityFlags.CLIENT_PLUGIN_AUTH;
+import static com.github.mpjct.jmpjct.mysql.proto.define.CapabilityFlags.CLIENT_PLUGIN_AUTH_LENENC_CLIENT_DATA;
+import static com.github.mpjct.jmpjct.mysql.proto.define.CapabilityFlags.CLIENT_PROTOCOL_41;
+import static com.github.mpjct.jmpjct.mysql.proto.define.CapabilityFlags.CLIENT_SECURE_CONNECTION;
+import static com.github.mpjct.jmpjct.mysql.proto.define.CapabilityFlags.CLIENT_SESSION_TRACK;
+import static com.github.mpjct.jmpjct.mysql.proto.define.CapabilityFlags.CLIENT_TRANSACTIONS;
+import static jss.proto.codec.Codec.int1;
+import static jss.proto.codec.Codec.int2;
+import static jss.proto.codec.Codec.int3;
+import static jss.proto.codec.Codec.int4;
+import static jss.proto.codec.Codec.int_lenenc;
+import static jss.proto.codec.Codec.string_eof;
+import static jss.proto.codec.Codec.string_fix;
+import static jss.proto.codec.Codec.string_lenenc;
+import static jss.proto.codec.Codec.string_nul;
 import io.netty.buffer.ByteBuf;
+
 import java.nio.charset.StandardCharsets;
+
+import jss.proto.packet.ColumnDefinition320;
+import jss.proto.packet.ColumnDefinition41;
 import jss.proto.packet.EOF_Packet;
 import jss.proto.packet.ERR_Packet;
 import jss.proto.packet.OK_Packet;
@@ -14,6 +31,10 @@ import jss.proto.packet.PacketData;
 import jss.proto.packet.connection.AuthSwitchRequest;
 import jss.proto.packet.connection.HandshakeResponse41;
 import jss.proto.packet.connection.HandshakeV10;
+
+import com.github.mpjct.jmpjct.mysql.proto.define.Flags;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 
 /**
  * 包编码
@@ -183,4 +204,64 @@ public class PacketCodec
         packet.payload = Codec.string_var(buf, packet.payloadLength);
         return packet;
     }
+
+	public ColumnDefinition320 readPacket(ByteBuf buf, ColumnDefinition320 packet, int flags)
+	{
+		packet.table = string_lenenc(buf);
+		packet.name = string_lenenc(buf);
+		packet.columnLengthFieldLength = (int) int_lenenc(buf);
+		packet.columnLength = int3(buf);
+		packet.typeFieldLength = (int) int_lenenc(buf);
+		packet.type = int1(buf);
+		if (hasFlag(flags, CLIENT_LONG_FLAG))
+		{
+			packet.flagsDecimalsFieldsLength = (int) int_lenenc(buf);
+			packet.flags = int2(buf);
+			packet.decimals = int1(buf);
+		} else
+		{
+			packet.flagsDecimalsFieldsLength = int1(buf);
+			packet.flags = int1(buf);
+			packet.decimals = int1(buf);
+		}
+		//TODO explain the meaning of this comman?
+		if (packet.command.command() == Flags.COM_FIELD_LIST)
+		{
+			packet.defaultValuesLength = (int) int_lenenc(buf);
+			packet.defaultValues = Lists.newArrayList();
+			do
+			{
+				packet.defaultValues.add(string_lenenc(buf).toString(StandardCharsets.UTF_8));
+			} while (hasMore(buf));
+		}
+		return packet;
+	}
+
+	public ColumnDefinition41 readPacket(ByteBuf buf, ColumnDefinition41 packet, int flags)
+	{
+		packet.catalog = string_lenenc(buf);
+		packet.schema = string_lenenc(buf);
+		packet.table = string_lenenc(buf);
+		packet.orgTable = string_lenenc(buf);
+		packet.name = string_lenenc(buf);
+		packet.orgName = string_lenenc(buf);
+		packet.fixedLengthFieldsLength = (int) int_lenenc(buf);
+		packet.characterSet = int2(buf);
+		packet.columnLength = int4(buf);
+		packet.type = int1(buf);
+		packet.flags = int2(buf);
+		packet.decimals = int1(buf);
+		packet.filler = int2(buf);
+		// TODO explain the meaning of this comman?
+		if (packet.command.command() == Flags.COM_FIELD_LIST)
+		{
+			packet.defaultValuesLength = (int) int_lenenc(buf);
+			packet.defaultValues = Lists.newArrayList();
+			do
+			{
+				packet.defaultValues.add(string_lenenc(buf).toString(StandardCharsets.UTF_8));
+			} while (hasMore(buf));
+		}
+		return packet;
+	}
 }

@@ -1,5 +1,7 @@
 package jss.proto.packet;
 
+import java.util.List;
+
 import io.netty.buffer.ByteBuf;
 
 /**
@@ -47,5 +49,7 @@ public class ColumnDefinition320 implements Packet
 	public int flags;
 	public int decimals;
 	public int defaultValuesLength;
-	public ByteBuf defaultValues;
+//	public ByteBuf defaultValues;
+	public List<String> defaultValues;
+	public ProtocolText command;
 }

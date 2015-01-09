@@ -1,5 +1,7 @@
 package jss.proto.packet;
 
+import java.util.List;
+
 import io.netty.buffer.ByteBuf;
 
 /**
@@ -75,9 +77,9 @@ public class ColumnDefinition41 implements Packet
 	public ByteBuf catalog;
 	public ByteBuf schema;
 	public ByteBuf table;
-	public ByteBuf org_table;
+	public ByteBuf orgTable;
 	public ByteBuf name;
-	public ByteBuf org_name;
+	public ByteBuf orgName;
 	public int fixedLengthFieldsLength;
 	public int characterSet;
 	public int columnLength;
@@ -85,6 +87,7 @@ public class ColumnDefinition41 implements Packet
 	public int flags;
 	public int decimals;
 	public int filler;
+	public ProtocolText command;
 	public int defaultValuesLength;
-	public ByteBuf defaultValues;
+	public List<String> defaultValues;
 }
