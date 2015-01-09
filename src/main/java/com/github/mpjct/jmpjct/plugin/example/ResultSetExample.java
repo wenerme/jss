@@ -8,8 +8,8 @@ import com.github.mpjct.jmpjct.Engine;
 import com.github.mpjct.jmpjct.mysql.proto.Column;
 import com.github.mpjct.jmpjct.mysql.proto.ResultSet;
 import com.github.mpjct.jmpjct.mysql.proto.Row;
-import com.github.mpjct.jmpjct.mysql.proto.define.Flags;
 import com.github.mpjct.jmpjct.plugin.PluginAdapter;
+import jss.proto.define.Flags;
 import org.apache.log4j.Logger;
 
 public class ResultSetExample extends PluginAdapter

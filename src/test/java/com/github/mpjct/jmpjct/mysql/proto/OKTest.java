@@ -3,7 +3,7 @@ package com.github.mpjct.jmpjct.mysql.proto;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
-import com.github.mpjct.jmpjct.mysql.proto.define.Flags;
+import jss.proto.define.Flags;
 import org.junit.Test;
 
 public class OKTest {

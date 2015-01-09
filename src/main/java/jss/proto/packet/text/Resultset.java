@@ -1,6 +1,7 @@
 package jss.proto.packet.text;
 
 import java.util.List;
+import jss.proto.packet.EOF_Packet;
 import jss.proto.packet.Packet;
 
 /**
@@ -28,5 +29,6 @@ public class Resultset implements Packet
 {
     public List<ColumnDefinition> columns;
     public List<ResultsetRow> rows;
+    public EOF_Packet lastEofPacket;
 
 }

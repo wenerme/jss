@@ -1,7 +1,7 @@
 package com.github.mpjct.jmpjct.mysql.proto;
 
-import com.github.mpjct.jmpjct.mysql.proto.define.Flags;
 import java.util.ArrayList;
+import jss.proto.define.Flags;
 
 public class Com_Createdb extends Packet {
     public String schema = "";

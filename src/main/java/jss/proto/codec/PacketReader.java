@@ -4,8 +4,6 @@ import static jss.proto.codec.Codec.*;
 import static jss.proto.codec.PacketCodec.hasFlag;
 import static jss.proto.codec.PacketCodec.readPacket;
 
-import com.github.mpjct.jmpjct.mysql.proto.define.Flags;
-import com.github.mpjct.jmpjct.mysql.proto.define.PacketTypes;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
@@ -19,6 +17,8 @@ import java.nio.ByteOrder;
 import java.util.List;
 import java.util.Map;
 import jss.proto.define.Command;
+import jss.proto.define.Flags;
+import jss.proto.define.PacketTypes;
 import jss.proto.packet.EOF_Packet;
 import jss.proto.packet.ERR_Packet;
 import jss.proto.packet.OK_Packet;
@@ -29,6 +29,7 @@ import jss.proto.packet.text.COM_QUERY;
 import jss.proto.packet.text.ColumnDefinition41;
 import jss.proto.packet.text.CommandPacket;
 import jss.proto.packet.text.Commands;
+import jss.proto.packet.text.Resultset;
 import jss.proto.packet.text.ResultsetRow;
 import jss.util.Values;
 import lombok.extern.slf4j.Slf4j;
@@ -90,14 +91,13 @@ public class PacketReader
             case Flags.LOCAL_INFILE:
 
             default:
-//                readResultset(buf, flags);
+                return readResultset(buf, flags);
 
-                return null;
         }
         return PacketReader.readGenericPacket(buf, packet, flags);
     }
 
-    private static void readResultset(ByteBuf buf, int flags)
+    private static Resultset readResultset(ByteBuf buf, int flags)
     {
         // field count
         // field *
@@ -108,7 +108,8 @@ public class PacketReader
         List<ColumnDefinition41> columns = Lists.newArrayList();
         for (long i = 0; i < fieldCount; i++)
         {
-            columns.add(readPacket(buf, new ColumnDefinition41(), flags, null));
+            ColumnDefinition41 column = PacketCodec.readPacket(buf, new ColumnDefinition41(), flags);
+            columns.add(column);
         }
         if (!hasFlag(flags, Flags.CLIENT_DEPRECATE_EOF))
         {
@@ -125,6 +126,8 @@ public class PacketReader
         {
             readPacket(buf, new EOF_Packet(), flags);
         }
+
+        return null;
     }
 
 
@@ -174,7 +177,8 @@ public class PacketReader
     public static Packet readResultPacket(ByteBuf buf, int flags)
     {
         Packet packetObject;
-        switch (buf.getByte(buf.readerIndex()))
+        byte type = buf.getByte(buf.readerIndex());
+        switch (type)
         {
             case Flags.ERR:
                 packetObject = new ERR_Packet();
@@ -186,7 +190,7 @@ public class PacketReader
                 packetObject = new EOF_Packet();
                 break;
             default:
-                return null;
+                throw new AssertionError("不支持的返回包结果 " + type);
         }
         return PacketReader.readGenericPacket(buf, packetObject, flags);
     }

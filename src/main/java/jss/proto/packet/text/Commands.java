@@ -1,6 +1,5 @@
 package jss.proto.packet.text;
 
-import com.github.mpjct.jmpjct.mysql.proto.define.Flags;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableMap;
@@ -8,6 +7,7 @@ import com.google.common.collect.Maps;
 import java.util.HashMap;
 import java.util.Map;
 import jss.proto.define.Command;
+import jss.proto.define.Flags;
 import jss.proto.packet.ProtocolText;
 import jss.proto.packet.replication.COM_BINLOG_DUMP;
 import jss.proto.packet.replication.COM_BINLOG_DUMP_GTID;

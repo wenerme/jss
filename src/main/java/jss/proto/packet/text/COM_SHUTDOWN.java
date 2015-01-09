@@ -1,7 +1,7 @@
 package jss.proto.packet.text;
 
-import com.github.mpjct.jmpjct.mysql.proto.define.Flags;
 import jss.proto.define.Command;
+import jss.proto.define.Flags;
 
 /**
  * @see jss.proto.define.Command#COM_SHUTDOWN

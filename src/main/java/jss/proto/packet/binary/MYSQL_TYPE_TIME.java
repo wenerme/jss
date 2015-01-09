@@ -1,6 +1,6 @@
 package jss.proto.packet.binary;
 
-import com.github.mpjct.jmpjct.mysql.proto.define.Flags;
+import jss.proto.define.Flags;
 
 public class MYSQL_TYPE_TIME extends TimeValue
 {

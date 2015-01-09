@@ -7,10 +7,10 @@ package com.github.mpjct.jmpjct.plugin.debug;
 
 import com.github.mpjct.jmpjct.Engine;
 import com.github.mpjct.jmpjct.mysql.proto.Packet;
-import com.github.mpjct.jmpjct.mysql.proto.define.Flags;
 import com.github.mpjct.jmpjct.plugin.PluginAdapter;
 import java.io.IOException;
 import java.util.ArrayList;
+import jss.proto.define.Flags;
 import org.apache.log4j.Logger;
 import org.slf4j.LoggerFactory;
 

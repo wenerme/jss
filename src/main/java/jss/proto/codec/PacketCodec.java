@@ -1,13 +1,13 @@
 package jss.proto.codec;
 
-import static com.github.mpjct.jmpjct.mysql.proto.define.CapabilityFlags.*;
 import static jss.proto.codec.Codec.*;
+import static jss.proto.define.CapabilityFlags.*;
 
-import com.github.mpjct.jmpjct.mysql.proto.define.Flags;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import io.netty.buffer.ByteBuf;
 import java.nio.charset.StandardCharsets;
+import jss.proto.define.Flags;
 import jss.proto.packet.EOF_Packet;
 import jss.proto.packet.ERR_Packet;
 import jss.proto.packet.OK_Packet;
@@ -226,7 +226,7 @@ public class PacketCodec
         return packet;
     }
 
-    public static ColumnDefinition41 readPacket(ByteBuf buf, ColumnDefinition41 packet, int flags, CommandPacket command)
+    public static ColumnDefinition41 readPacket(ByteBuf buf, ColumnDefinition41 packet, int flags)
     {
         packet.catalog = string_lenenc(buf);
         packet.schema = string_lenenc(buf);
@@ -241,15 +241,19 @@ public class PacketCodec
         packet.flags = int2(buf);
         packet.decimals = int1(buf);
         packet.filler = int2(buf);
-        if (false && command.command == Flags.COM_FIELD_LIST)
+        return packet;
+    }
+
+    public static ColumnDefinition41 readPacketForCOM_FIELD_LIST(ByteBuf buf, ColumnDefinition41 packet, int flags, CommandPacket command)
+    {
+        readPacket(buf, packet, flags);
+
+        packet.defaultValuesLength = (int) int_lenenc(buf);
+        packet.defaultValues = Lists.newArrayList();
+        do
         {
-            packet.defaultValuesLength = (int) int_lenenc(buf);
-            packet.defaultValues = Lists.newArrayList();
-            do
-            {
-                packet.defaultValues.add(string_lenenc(buf).toString(StandardCharsets.UTF_8));
-            } while (hasMore(buf));
-        }
+            packet.defaultValues.add(string_lenenc(buf).toString(StandardCharsets.UTF_8));
+        } while (hasMore(buf));
         return packet;
     }
 }

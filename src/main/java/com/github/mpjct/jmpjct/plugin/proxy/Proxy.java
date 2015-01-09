@@ -8,7 +8,6 @@ import com.github.mpjct.jmpjct.mysql.proto.Handshake;
 import com.github.mpjct.jmpjct.mysql.proto.HandshakeResponse;
 import com.github.mpjct.jmpjct.mysql.proto.Packet;
 import com.github.mpjct.jmpjct.mysql.proto.ResultSet;
-import com.github.mpjct.jmpjct.mysql.proto.define.Flags;
 import com.github.mpjct.jmpjct.plugin.PluginAdapter;
 import java.io.BufferedInputStream;
 import java.io.IOException;
@@ -16,6 +15,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import jss.proto.define.Flags;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

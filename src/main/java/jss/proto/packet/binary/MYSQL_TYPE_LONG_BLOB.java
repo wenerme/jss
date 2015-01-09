@@ -1,6 +1,6 @@
 package jss.proto.packet.binary;
 
-import com.github.mpjct.jmpjct.mysql.proto.define.Flags;
+import jss.proto.define.Flags;
 
 /**
  * @see <a href=http://dev.mysql.com/doc/internals/en/binary-protocol-value.html>binary-protocol-value</a>

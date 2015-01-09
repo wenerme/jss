@@ -8,8 +8,8 @@ package com.github.mpjct.jmpjct.mysql.proto;
  *
  */
 
-import com.github.mpjct.jmpjct.mysql.proto.define.Flags;
 import java.util.ArrayList;
+import jss.proto.define.Flags;
 
 public class ERR extends Packet {
     public long errorCode = 0;

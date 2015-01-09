@@ -1,6 +1,6 @@
 package jss.proto.codec;
 
-import static com.github.mpjct.jmpjct.mysql.proto.define.Flags.*;
+import static jss.proto.define.Flags.*;
 
 import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;

@@ -1,11 +1,12 @@
 package jss.proto.packet.connection;
 
-import com.github.mpjct.jmpjct.mysql.proto.define.Flags;
 import io.netty.buffer.ByteBuf;
 import jss.proto.define.CapabilityFlag;
+import jss.proto.define.Flags;
 import jss.proto.define.StatusFlag;
 import jss.proto.packet.Packet;
 import jss.proto.util.Dumper;
+import jss.proto.util.Stringer;
 
 /**
  * <pre>
@@ -81,17 +82,17 @@ public class HandshakeV10 implements Packet
     {
         return "HandshakeV10{" +
                 "protocolVersion=" + protocolVersion +
-                ", serverVersion=" + Dumper.string(serverVersion) +
+                ", serverVersion=" + Stringer.string(serverVersion) +
                 ", connectionId=" + connectionId +
-                ", challenge1=" + Dumper.string(challenge1) +
+                ", challenge1=" + Stringer.string(challenge1) +
                 ", filter=" + filter +
                 ", capabilityFlags=" + Dumper.dump(capabilityFlags, CapabilityFlag.class) +
                 ", characterSet=" + characterSet +
                 ", statusFlags=" + Dumper.dump(statusFlags, StatusFlag.class) +
-                ", challenge2=" + Dumper.string(challenge2) +
+                ", challenge2=" + Stringer.string(challenge2) +
                 ", authPluginDataLength=" + authPluginDataLength +
-                ", authPluginName=" + Dumper.string(authPluginName) +
-                ", reserved=" + Dumper.string(reserved) +
+                ", authPluginName=" + Stringer.string(authPluginName) +
+                ", reserved=" + Stringer.string(reserved) +
                 '}';
     }
 }

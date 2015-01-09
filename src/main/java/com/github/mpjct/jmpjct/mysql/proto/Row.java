@@ -1,7 +1,7 @@
 package com.github.mpjct.jmpjct.mysql.proto;
 
-import com.github.mpjct.jmpjct.mysql.proto.define.Flags;
 import java.util.ArrayList;
+import jss.proto.define.Flags;
 
 public class Row extends Packet {
     public int type = Flags.ROW_TYPE_TEXT;

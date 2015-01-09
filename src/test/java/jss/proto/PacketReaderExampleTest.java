@@ -4,19 +4,20 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static jss.proto.codec.PacketCodec.readPacket;
 import static org.junit.Assert.assertEquals;
 
-import com.github.mpjct.jmpjct.mysql.proto.define.Flags;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import java.io.IOException;
 import java.nio.ByteOrder;
 import java.util.regex.Pattern;
+import jss.proto.define.Flags;
 import jss.proto.packet.EOF_Packet;
 import jss.proto.packet.ERR_Packet;
 import jss.proto.packet.OK_Packet;
 import jss.proto.packet.PacketData;
 import jss.proto.packet.connection.AuthSwitchRequest;
 import jss.proto.packet.connection.HandshakeResponse41;
-import jss.proto.util.Dumper;
+import jss.proto.packet.text.ColumnDefinition41;
+import jss.proto.util.Stringer;
 import org.apache.commons.io.HexDump;
 import org.junit.Test;
 
@@ -45,13 +46,37 @@ public class PacketReaderExampleTest extends JSSTest implements Flags
 
 
     @Test
+    public void testCOM_FIELDS_LISTResponse()
+    {
+        String dump = "31 00 00 01 03 64 65 66    04 74 65 73 74 09 66 69    1....def.test.fi\n" +
+                "65 6c 64 6c 69 73 74 09    66 69 65 6c 64 6c 69 73    eldlist.fieldlis\n" +
+                "74 02 69 64 02 69 64 0c    3f 00 0b 00 00 00 03 00    t.id.id.?.......\n" +
+                "00 00 00 00 fb 05 00 00    02 fe 00 00 02 00          ..............";
+
+        PacketData data = dumpBytesToData(dump);
+        ColumnDefinition41 packet = readPacket(data.payload, new ColumnDefinition41(), 0);
+        assertEquals("def", Stringer.string(packet.catalog));
+        assertEquals("test", Stringer.string(packet.schema));
+        assertEquals("fieldlist", Stringer.string(packet.table));
+        assertEquals("fieldlist", Stringer.string(packet.orgTable));
+        assertEquals("id", Stringer.string(packet.name));
+        assertEquals(12, packet.fixedLengthFieldsLength);
+        assertEquals(63, packet.characterSet);
+        assertEquals(11, packet.columnLength);
+        assertEquals(3, packet.type);
+        assertEquals(0, packet.flags);
+        assertEquals(0, packet.decimals);
+        System.out.println(packet);
+    }
+
+    @Test
     public void testAuthSwitchRequest()
     {
         PacketData data = dumpBytesToData("2c 00 00 02 fe 6d 79 73    71 6c 5f 6e 61 74 69 76    ,....mysql_nativ\n" +
                 "65 5f 70 61 73 73 77 6f    72 64 00 7a 51 67 34 69    e_password.zQg4i\n" +
                 "36 6f 4e 79 36 3d 72 48    4e 2f 3e 2d 62 29 41 00    6oNy6=rHN>-b)A.");
         AuthSwitchRequest authSwitchRequest = readPacket(data.payload, new AuthSwitchRequest(), 0);
-        assertEquals("mysql_native_password", Dumper.string(authSwitchRequest.pluginName));
+        assertEquals("mysql_native_password", Stringer.string(authSwitchRequest.pluginName));
         System.out.println(authSwitchRequest);
     }
 

@@ -1,7 +1,7 @@
 package jss.proto.packet;
 
 import io.netty.buffer.ByteBuf;
-import jss.proto.util.Dumper;
+import jss.proto.util.Stringer;
 import lombok.EqualsAndHashCode;
 
 /**
@@ -36,8 +36,8 @@ public class ERR_Packet implements Packet
     {
         return "ERR_Packet(header=" + this.header +
                 ", errorCode=" + this.errorCode +
-                ", sqlStateMarker=" + Dumper.string(this.sqlStateMarker) +
-                ", sqlState=" + Dumper.string(this.sqlState) +
-                ", errorMessage=" + Dumper.string(this.errorMessage) + ")";
+                ", sqlStateMarker=" + Stringer.string(this.sqlStateMarker) +
+                ", sqlState=" + Stringer.string(this.sqlState) +
+                ", errorMessage=" + Stringer.string(this.errorMessage) + ")";
     }
 }

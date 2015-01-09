@@ -1,23 +1,45 @@
 package jss.proto.util;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
-
 import com.google.common.base.Throwables;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufUtil;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.EnumSet;
+import jss.proto.define.MySQLType;
 import jss.util.IsInteger;
 import jss.util.Values;
 import org.apache.commons.io.HexDump;
 
+/**
+ * 与 Dumper 类似,但是会输出更多调试相关的信息
+ */
 public class Dumper
 {
     public static <T extends Enum<T> & IsInteger> String dump(long flags, Class<T> type)
     {
         EnumSet<T> set = Values.asEnumSet(flags, type);
         return String.format("%s -> %s", Long.toBinaryString(flags), set);
+    }
+
+    public static String charset(int charset)
+    {
+        String cs = CharsetUtil.getCharset(charset);
+        if (cs == null)
+        {
+            return "未知的编码类型 (" + charset + ")";
+        }
+        return String.format("%s -> %s", charset, cs);
+    }
+
+    public static String sqlType(int sqlType)
+    {
+        MySQLType type = Values.fromValue(MySQLType.class, sqlType);
+        if (type == null)
+        {
+            return "未知的 SQL 类型 (" + sqlType + ")";
+        }
+        return String.format("%s -> %s", sqlType, type);
     }
 
     public static String dump(ByteBuf buf)
@@ -50,16 +72,6 @@ public class Dumper
         {
             Throwables.propagate(e);
         }
-        return string(os.toByteArray());
-    }
-
-    public static String string(byte[] bytes)
-    {
-        return new String(bytes, UTF_8);
-    }
-
-    public static String string(ByteBuf buf)
-    {
-        return buf == null ? null : buf.toString(UTF_8);
+        return Stringer.string(os.toByteArray());
     }
 }

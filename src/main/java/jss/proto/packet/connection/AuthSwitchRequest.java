@@ -2,7 +2,7 @@ package jss.proto.packet.connection;
 
 import io.netty.buffer.ByteBuf;
 import jss.proto.packet.Packet;
-import jss.proto.util.Dumper;
+import jss.proto.util.Stringer;
 
 /**
  * <pre>
@@ -42,8 +42,8 @@ public class AuthSwitchRequest implements Packet
     {
         return "AuthSwitchRequest{" +
                 "status=" + status +
-                ", pluginName=" + Dumper.string(pluginName) +
-                ", authPluginData=" + Dumper.string(authPluginData) +
+                ", pluginName=" + Stringer.string(pluginName) +
+                ", authPluginData=" + Stringer.string(authPluginData) +
                 '}';
     }
 }

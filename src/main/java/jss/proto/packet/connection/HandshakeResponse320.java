@@ -1,6 +1,6 @@
 package jss.proto.packet.connection;
 
-import com.github.mpjct.jmpjct.mysql.proto.define.Flags;
+import jss.proto.define.Flags;
 import jss.proto.packet.Packet;
 
 /**

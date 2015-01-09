@@ -2,7 +2,7 @@ package jss.proto.packet.text;
 
 import io.netty.buffer.ByteBuf;
 import jss.proto.define.Command;
-import jss.proto.util.Dumper;
+import jss.proto.util.Stringer;
 
 /**
  * @see jss.proto.define.Command#COM_QUERY
@@ -17,7 +17,7 @@ public class COM_QUERY extends CommandPacket
     public String toString()
     {
         return "COM_QUERY{" +
-                "query=" + Dumper.string(query) +
+                "query=" + Stringer.string(query) +
                 "} " + super.toString();
     }
 }

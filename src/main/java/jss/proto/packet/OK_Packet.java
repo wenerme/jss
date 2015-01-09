@@ -2,6 +2,7 @@ package jss.proto.packet;
 
 import io.netty.buffer.ByteBuf;
 import jss.proto.util.Dumper;
+import jss.proto.util.Stringer;
 
 /**
  * An OK packet is sent from the server to the client to signal successful completion of a command.
@@ -56,7 +57,7 @@ public class OK_Packet implements Packet
                 ", lastInsertId=" + lastInsertId +
                 ", statusFlags=" + statusFlags +
                 ", warnings=" + warnings +
-                ", info=" + Dumper.string(info) +
+                ", info=" + Stringer.string(info) +
                 ", sessionStateChanges=" + Dumper.dump(sessionStateChanges) +
                 '}';
     }

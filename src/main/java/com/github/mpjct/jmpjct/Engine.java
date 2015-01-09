@@ -7,7 +7,6 @@ package com.github.mpjct.jmpjct;
 
 import com.github.mpjct.jmpjct.mysql.proto.Handshake;
 import com.github.mpjct.jmpjct.mysql.proto.HandshakeResponse;
-import com.github.mpjct.jmpjct.mysql.proto.define.Flags;
 import com.github.mpjct.jmpjct.plugin.PluginAdapter;
 import java.io.BufferedInputStream;
 import java.io.IOException;
@@ -15,6 +14,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.util.ArrayList;
+import jss.proto.define.Flags;
 import org.apache.log4j.Logger;
 
 public class Engine implements Runnable

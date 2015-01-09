@@ -1,8 +1,8 @@
 package com.mysql.jdbc;
 
-import com.github.mpjct.jmpjct.mysql.proto.define.MySQLTypes;
 import java.lang.reflect.Field;
 import jss.proto.define.Command;
+import jss.proto.define.MySQLTypes;
 import org.junit.Test;
 
 public class Generator

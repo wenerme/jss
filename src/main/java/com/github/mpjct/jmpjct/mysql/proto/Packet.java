@@ -1,11 +1,11 @@
 package com.github.mpjct.jmpjct.mysql.proto;
 
-import com.github.mpjct.jmpjct.mysql.proto.define.Flags;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import jss.proto.define.Flags;
 import org.apache.commons.io.HexDump;
 import org.apache.log4j.Logger;
 

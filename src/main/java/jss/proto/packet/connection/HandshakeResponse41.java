@@ -1,11 +1,12 @@
 package jss.proto.packet.connection;
 
-import com.github.mpjct.jmpjct.mysql.proto.define.Flags;
 import io.netty.buffer.ByteBuf;
 import java.util.Map;
 import jss.proto.define.CapabilityFlag;
+import jss.proto.define.Flags;
 import jss.proto.packet.Packet;
 import jss.proto.util.Dumper;
+import jss.proto.util.Stringer;
 
 /**
  * Handshake Response Packet sent by 4.1+ clients supporting CLIENT_PROTOCOL_41 capability, if the server announced it in its Initial Handshake Packet. Otherwise (talking to an old server) the Protocol::HandshakeResponse320 packet has to be used.
@@ -112,11 +113,11 @@ public class HandshakeResponse41 implements Packet
                 ", maxPacketSize=" + maxPacketSize +
                 ", characterSet=" + characterSet +
                 ", reserved=" + Dumper.dump(reserved) +
-                ", username=" + Dumper.string(username) +
+                ", username=" + Stringer.string(username) +
                 ", authResponseLen=" + authResponseLen +
                 ", authResponse=" + Dumper.dump(authResponse) +
-                ", database=" + Dumper.string(database) +
-                ", authPluginName=" + Dumper.string(authPluginName) +
+                ", database=" + Stringer.string(database) +
+                ", authPluginName=" + Stringer.string(authPluginName) +
                 ", keyValuesLength=" + keyValuesLength +
                 ", attributes=" + attributes +
                 '}';

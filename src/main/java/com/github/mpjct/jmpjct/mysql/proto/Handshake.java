@@ -1,7 +1,7 @@
 package com.github.mpjct.jmpjct.mysql.proto;
 
-import com.github.mpjct.jmpjct.mysql.proto.define.Flags;
 import java.util.ArrayList;
+import jss.proto.define.Flags;
 
 public class Handshake extends Packet {
     public long protocolVersion = 0x0a;
