@@ -1,7 +1,7 @@
 package jss.proto.packet;
 
 import io.netty.buffer.ByteBuf;
-import java.nio.charset.StandardCharsets;
+import jss.proto.util.Dumper;
 import lombok.EqualsAndHashCode;
 
 /**
@@ -34,9 +34,10 @@ public class ERR_Packet implements Packet
 
     public String toString()
     {
-        return "ERR_Packet(header=" + this.header + ", errorCode=" + this.errorCode + ", sqlStateMarker=" + this.sqlStateMarker
-                .toString(StandardCharsets.UTF_8) + ", sqlState=" + this.sqlState
-                .toString(StandardCharsets.UTF_8) + ", errorMessage=" + this.errorMessage
-                .toString(StandardCharsets.UTF_8) + ")";
+        return "ERR_Packet(header=" + this.header +
+                ", errorCode=" + this.errorCode +
+                ", sqlStateMarker=" + Dumper.string(this.sqlStateMarker) +
+                ", sqlState=" + Dumper.string(this.sqlState) +
+                ", errorMessage=" + Dumper.string(this.errorMessage) + ")";
     }
 }

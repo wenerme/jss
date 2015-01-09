@@ -32,5 +32,4 @@ public interface MySQLTypes
     public static final int MYSQL_TYPE_VAR_STRING = 253;
     public static final int MYSQL_TYPE_STRING = 254;
     public static final int MYSQL_TYPE_GEOMETRY = 255;
-
 }

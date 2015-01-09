@@ -1,6 +1,7 @@
 package jss.proto.packet;
 
 import io.netty.buffer.ByteBuf;
+import jss.proto.util.Dumper;
 
 /**
  * An OK packet is sent from the server to the client to signal successful completion of a command.
@@ -45,4 +46,18 @@ public class OK_Packet implements Packet
 
     public ByteBuf info;
     public ByteBuf sessionStateChanges;
+
+    @Override
+    public String toString()
+    {
+        return "OK_Packet{" +
+                "header=" + header +
+                ", affectedRows=" + affectedRows +
+                ", lastInsertId=" + lastInsertId +
+                ", statusFlags=" + statusFlags +
+                ", warnings=" + warnings +
+                ", info=" + Dumper.string(info) +
+                ", sessionStateChanges=" + Dumper.dump(sessionStateChanges) +
+                '}';
+    }
 }

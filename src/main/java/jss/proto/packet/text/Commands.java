@@ -108,6 +108,12 @@ public class Commands
         return COMMAND_TO_INSTANCE.containsKey(command);
     }
 
+    @SuppressWarnings("unchecked")
+    public static <T extends ProtocolText> T getSingleton(int command)
+    {
+        return (T) COMMAND_TO_INSTANCE.get(command);
+    }
+
     /**
      * @return return a command, if the command is not singleton, will creat one.
      */
@@ -126,6 +132,11 @@ public class Commands
         if (log.isDebugEnabled())
             Preconditions.checkNotNull(com, "没有找到命令 %s", command);
         return com != null;
+    }
+
+    public static <T extends ProtocolText> T createAndCache(int command)
+    {
+        return create(command);
     }
 
     @SuppressWarnings("unchecked")

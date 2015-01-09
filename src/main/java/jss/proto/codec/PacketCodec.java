@@ -1,40 +1,23 @@
 package jss.proto.codec;
 
-import static com.github.mpjct.jmpjct.mysql.proto.define.CapabilityFlags.CLIENT_CONNECT_ATTRS;
-import static com.github.mpjct.jmpjct.mysql.proto.define.CapabilityFlags.CLIENT_CONNECT_WITH_DB;
-import static com.github.mpjct.jmpjct.mysql.proto.define.CapabilityFlags.CLIENT_LONG_FLAG;
-import static com.github.mpjct.jmpjct.mysql.proto.define.CapabilityFlags.CLIENT_PLUGIN_AUTH;
-import static com.github.mpjct.jmpjct.mysql.proto.define.CapabilityFlags.CLIENT_PLUGIN_AUTH_LENENC_CLIENT_DATA;
-import static com.github.mpjct.jmpjct.mysql.proto.define.CapabilityFlags.CLIENT_PROTOCOL_41;
-import static com.github.mpjct.jmpjct.mysql.proto.define.CapabilityFlags.CLIENT_SECURE_CONNECTION;
-import static com.github.mpjct.jmpjct.mysql.proto.define.CapabilityFlags.CLIENT_SESSION_TRACK;
-import static com.github.mpjct.jmpjct.mysql.proto.define.CapabilityFlags.CLIENT_TRANSACTIONS;
-import static jss.proto.codec.Codec.int1;
-import static jss.proto.codec.Codec.int2;
-import static jss.proto.codec.Codec.int3;
-import static jss.proto.codec.Codec.int4;
-import static jss.proto.codec.Codec.int_lenenc;
-import static jss.proto.codec.Codec.string_eof;
-import static jss.proto.codec.Codec.string_fix;
-import static jss.proto.codec.Codec.string_lenenc;
-import static jss.proto.codec.Codec.string_nul;
-import io.netty.buffer.ByteBuf;
-
-import java.nio.charset.StandardCharsets;
-
-import jss.proto.packet.ColumnDefinition320;
-import jss.proto.packet.ColumnDefinition41;
-import jss.proto.packet.EOF_Packet;
-import jss.proto.packet.ERR_Packet;
-import jss.proto.packet.OK_Packet;
-import jss.proto.packet.PacketData;
-import jss.proto.packet.connection.AuthSwitchRequest;
-import jss.proto.packet.connection.HandshakeResponse41;
-import jss.proto.packet.connection.HandshakeV10;
+import static com.github.mpjct.jmpjct.mysql.proto.define.CapabilityFlags.*;
+import static jss.proto.codec.Codec.*;
 
 import com.github.mpjct.jmpjct.mysql.proto.define.Flags;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import io.netty.buffer.ByteBuf;
+import java.nio.charset.StandardCharsets;
+import jss.proto.packet.EOF_Packet;
+import jss.proto.packet.ERR_Packet;
+import jss.proto.packet.OK_Packet;
+import jss.proto.packet.PacketData;
+import jss.proto.packet.ProtocolText;
+import jss.proto.packet.connection.AuthSwitchRequest;
+import jss.proto.packet.connection.HandshakeResponse41;
+import jss.proto.packet.connection.HandshakeV10;
+import jss.proto.packet.text.ColumnDefinition320;
+import jss.proto.packet.text.ColumnDefinition41;
 
 /**
  * 包编码
@@ -205,8 +188,8 @@ public class PacketCodec
         return packet;
     }
 
-	public ColumnDefinition320 readPacket(ByteBuf buf, ColumnDefinition320 packet, int flags)
-	{
+    public static ColumnDefinition320 readPacket(ByteBuf buf, ColumnDefinition320 packet, int flags, ProtocolText command)
+    {
 		packet.table = string_lenenc(buf);
 		packet.name = string_lenenc(buf);
 		packet.columnLengthFieldLength = (int) int_lenenc(buf);
@@ -225,8 +208,8 @@ public class PacketCodec
 			packet.decimals = int1(buf);
 		}
 		//TODO explain the meaning of this comman?
-		if (packet.command.command() == Flags.COM_FIELD_LIST)
-		{
+        if (command.command() == Flags.COM_FIELD_LIST)
+        {
 			packet.defaultValuesLength = (int) int_lenenc(buf);
 			packet.defaultValues = Lists.newArrayList();
 			do
@@ -237,8 +220,8 @@ public class PacketCodec
 		return packet;
 	}
 
-	public ColumnDefinition41 readPacket(ByteBuf buf, ColumnDefinition41 packet, int flags)
-	{
+    public static ColumnDefinition41 readPacket(ByteBuf buf, ColumnDefinition41 packet, int flags, ProtocolText command)
+    {
 		packet.catalog = string_lenenc(buf);
 		packet.schema = string_lenenc(buf);
 		packet.table = string_lenenc(buf);
@@ -253,8 +236,8 @@ public class PacketCodec
 		packet.decimals = int1(buf);
 		packet.filler = int2(buf);
 		// TODO explain the meaning of this comman?
-		if (packet.command.command() == Flags.COM_FIELD_LIST)
-		{
+        if (false && command.command() == Flags.COM_FIELD_LIST)
+        {
 			packet.defaultValuesLength = (int) int_lenenc(buf);
 			packet.defaultValues = Lists.newArrayList();
 			do

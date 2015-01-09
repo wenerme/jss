@@ -1,5 +1,8 @@
 package jss.proto.packet;
 
+import jss.proto.define.StatusFlag;
+import jss.proto.util.Dumper;
+
 /**
  * If CLIENT_PROTOCOL_41 is enabled, the EOF packet contains a warning count and status flags.
  * <pre>
@@ -24,4 +27,14 @@ public class EOF_Packet implements Packet
     public int header = 0xfe;
     public int warnings = 0;
     public int statusFlags = 0;
+
+    @Override
+    public String toString()
+    {
+        return "EOF_Packet{" +
+                "header=" + header +
+                ", warnings=" + warnings +
+                ", statusFlags=" + Dumper.dump(statusFlags, StatusFlag.class) +
+                '}';
+    }
 }

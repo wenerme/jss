@@ -1,17 +1,28 @@
 package jss.proto.codec;
 
+import static jss.proto.codec.Codec.int1;
+import static jss.proto.codec.Codec.int_lenenc;
 import static jss.proto.codec.PacketCodec.readPacket;
 
+import com.github.mpjct.jmpjct.mysql.proto.define.Flags;
 import com.google.common.base.Throwables;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.ByteOrder;
+import java.util.List;
 import java.util.Map;
+import jss.proto.packet.EOF_Packet;
+import jss.proto.packet.ERR_Packet;
+import jss.proto.packet.OK_Packet;
 import jss.proto.packet.Packet;
 import jss.proto.packet.PacketData;
+import jss.proto.packet.ProtocolText;
+import jss.proto.packet.text.ColumnDefinition41;
+import jss.proto.packet.text.Commands;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -30,12 +41,80 @@ public class PacketReader
         }
     }
 
+    /**
+     * @param buf
+     * @param flags
+     * @return
+     * @see <a href=http://dev.mysql.com/doc/internals/en/com-query-response.html#packet-COM_QUERY_Response>COM_QUERY_Response</a>
+     */
+    public static Packet readQueryResponse(ByteBuf buf, int flags)
+    {
+        Packet packet;
+        switch (buf.getByte(buf.readerIndex()))
+        {
+            case Flags.ERR:
+                packet = new ERR_Packet();
+                break;
+            case Flags.OK:
+                packet = new OK_Packet();
+                break;
+            case Flags.LOCAL_INFILE:
 
-    // ok,err,eof
+            default:
+                // field count
+                // field *
+                // eof
+                // row *
+                // eof | err
+                long fieldCount = int_lenenc(buf);
+                List<ColumnDefinition41> columns = Lists.newArrayList();
+                for (long i = 0; i < fieldCount; i++)
+                {
+                    columns.add(readPacket(buf, new ColumnDefinition41(), flags, null));
+                }
+                return null;
+        }
+        return PacketReader.readGenericPacket(buf, packet, flags);
+    }
 
+    public static ProtocolText readTextPacket(ByteBuf buf, int flags)
+    {
+        short command = buf.getUnsignedByte(buf.readerIndex());
+        ProtocolText obj = Commands.getSingleton(command);
+        if (obj != null)
+        {
+            int1(buf);
+            return obj;
+        }
+
+        return readGenericPacket(buf, Commands.create(command), flags);
+    }
+
+    /**
+     * @return OK ERR EOF null
+     */
+    public static Packet readResultPacket(ByteBuf buf, int flags)
+    {
+        Packet packetObject;
+        switch (buf.getByte(buf.readerIndex()))
+        {
+            case Flags.ERR:
+                packetObject = new ERR_Packet();
+                break;
+            case Flags.OK:
+                packetObject = new OK_Packet();
+                break;
+            case Flags.EOF:
+                packetObject = new EOF_Packet();
+                break;
+            default:
+                return null;
+        }
+        return PacketReader.readGenericPacket(buf, packetObject, flags);
+    }
 
     @SuppressWarnings("unchecked")
-    static <T extends Packet> T readGenericPacket(ByteBuf buf, T packet, int flags)
+    public static <T extends Packet> T readGenericPacket(ByteBuf buf, T packet, int flags)
     {
         Reader<T> reader = getReaderByPacketClass((Class<T>) packet.getClass());
         return reader.readPacket(buf, packet, flags);

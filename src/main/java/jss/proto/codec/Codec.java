@@ -1,12 +1,21 @@
 package jss.proto.codec;
 
+import static com.github.mpjct.jmpjct.mysql.proto.define.Flags.*;
+
 import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import jss.proto.packet.ProtocolBinary;
+import jss.proto.packet.binary.BinaryValue;
+import jss.proto.packet.binary.DateValue;
+import jss.proto.packet.binary.Field;
+import jss.proto.packet.binary.Fields;
+import jss.proto.packet.binary.FloatValue;
+import jss.proto.packet.binary.IntegerValue;
+import jss.proto.packet.binary.TimeValue;
 import lombok.extern.slf4j.Slf4j;
-
 
 /**
  * @see <a href=http://dev.mysql.com/doc/internals/en/describing-packets.html>packets</a>
@@ -18,13 +27,112 @@ public class Codec
     public static final Charset CHARSET = StandardCharsets.UTF_8;
 
 
-    public static ByteBuf read(ByteBuf buf, Type type)
+    public static TimeValue readTime(ByteBuf buf, TimeValue packet)
     {
-        // http://dev.mysql.com/doc/internals/en/integer.html#packet-Protocol::FixedLengthInteger
+        // 0 8 12
+        int length = int1(buf);
+        if (length == 0)
+        {
+            packet.isNegative = false;
+            packet.hours = packet.minutes = packet.seconds = 0;
+            packet.microSeconds = 0;
+            return packet;
+        }
+        packet.isNegative = int1(buf) == 1;
+        packet.days = int4(buf);
+        packet.hours = int1(buf);
+        packet.minutes = int1(buf);
+        packet.seconds = int1(buf);
+        if (length == 8)
+            return packet;
+        packet.microSeconds = int4(buf);
+        return packet;
+    }
+
+    public static DateValue readDate(ByteBuf buf, DateValue packet)
+    {
+        // 0 4 7 11
+        int length = int1(buf);
+        if (length == 0)
+        {
+            packet.year = packet.month = packet.day = packet.hour = 0;
+            packet.minute = packet.second = packet.microSecond = 0;
+            return packet;
+        }
+        packet.year = int2(buf);
+        packet.month = int1(buf);
+        packet.day = int1(buf);
+        if (length == 4)
+            return packet;
+        packet.hour = int1(buf);
+        packet.minute = int1(buf);
+        packet.second = int1(buf);
+        if (length == 7)
+            return packet;
+        packet.microSecond = int4(buf);
+
+        return packet;
+    }
+
+    public static Field readField(ByteBuf buf, int type)
+    {
+        // 没有处理 MYSQL_TYPE_DATE2 等类型
+        Field field = Fields.createField(type);
         switch (type)
         {
-
+            case MYSQL_TYPE_STRING:
+            case MYSQL_TYPE_VARCHAR:
+            case MYSQL_TYPE_VAR_STRING:
+            case MYSQL_TYPE_ENUM:
+            case MYSQL_TYPE_SET:
+            case MYSQL_TYPE_LONG_BLOB:
+            case MYSQL_TYPE_MEDIUM_BLOB:
+            case MYSQL_TYPE_BLOB:
+            case MYSQL_TYPE_TINY_BLOB:
+            case MYSQL_TYPE_GEOMETRY:
+            case MYSQL_TYPE_BIT:
+            case MYSQL_TYPE_DECIMAL:
+            case MYSQL_TYPE_NEWDECIMAL:
+                ((BinaryValue) field).value = string_lenenc(buf);
+                break;
+            case MYSQL_TYPE_LONGLONG:
+                ((IntegerValue) field).value = int8(buf);
+                break;
+            case MYSQL_TYPE_LONG:
+            case MYSQL_TYPE_INT24:
+                ((IntegerValue) field).value = int4(buf);
+                break;
+            case MYSQL_TYPE_SHORT:
+            case MYSQL_TYPE_YEAR:
+                ((IntegerValue) field).value = int2(buf);
+                break;
+            case MYSQL_TYPE_TINY:
+                ((IntegerValue) field).value = int1(buf);
+                break;
+            case MYSQL_TYPE_DOUBLE:
+                ((FloatValue) field).value = buf.readDouble();
+                break;
+            case MYSQL_TYPE_FLOAT:
+                ((FloatValue) field).value = buf.readFloat();
+                break;
+            case MYSQL_TYPE_DATE:
+            case MYSQL_TYPE_DATETIME:
+            case MYSQL_TYPE_TIMESTAMP:
+                readDate(buf, ((DateValue) field));
+                break;
+            case MYSQL_TYPE_TIME:
+                readTime(buf, (TimeValue) field);
+                break;
+            case MYSQL_TYPE_NULL:
+//                break;
+            default:
+                throw new AssertionError("No suitable method to read type " + field);
         }
+        return field;
+    }
+
+    public static ProtocolBinary readBinary(ByteBuf buf, int type)
+    {
         return null;
     }
 
@@ -103,7 +211,7 @@ public class Codec
      */
     public static long int_lenenc(ByteBuf buf)
     {
-        int i = buf.readByte();
+        int i = buf.readUnsignedByte();
 
         int size;
         // 1 byte int
@@ -296,7 +404,7 @@ public class Codec
 
     public static enum Type
     {
-        int_lenenc, int1, int2, int3, int6, int8,
+        int_lenenc, int1, int2, int3, int4, int6, int8,
         string_lenenc, string_var, string_fix, string_eof, string_nul
     }
 }

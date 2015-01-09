@@ -22,7 +22,7 @@ public class Dumper
 
     public static String dump(ByteBuf buf)
     {
-        return buf == null ? "null" : ByteBufUtil.hexDump(buf);
+        return buf == null ? null : ByteBufUtil.hexDump(buf);
     }
 
     public static String hexDumpReadable(ByteBuf buf)
@@ -60,6 +60,6 @@ public class Dumper
 
     public static String string(ByteBuf buf)
     {
-        return buf == null ? "null" : buf.toString(UTF_8);
+        return buf == null ? null : buf.toString(UTF_8);
     }
 }
