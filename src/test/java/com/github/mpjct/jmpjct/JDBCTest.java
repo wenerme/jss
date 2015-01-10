@@ -1,5 +1,7 @@
 package com.github.mpjct.jmpjct;
 
+import static jss.util.jdbc.ResultSets.print;
+
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -80,6 +82,38 @@ public class JDBCTest
             System.out.println("Nothing");
         }
         System.out.println(c.isClosed());
+        c.close();
+    }
+
+    @Test
+    public void testComplex() throws Exception
+    {
+        new Thread(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                try
+                {
+                    JMP.main(null);
+                } catch (IOException e)
+                {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+        Thread.sleep(1000);
+        System.out.println("初始化完成");
+//        Connection c = DriverManager.getConnection("jdbc:mysql://localhost:5050/test?useServerPrepStmts=true", "root", "");
+        Connection c = DriverManager.getConnection("jdbc:mysql://localhost:5050/information_schema", "root", "");
+
+        print(c.getMetaData().getCatalogs());
+        System.out.println("getSuperTables");
+        print(c.getMetaData().getSuperTables(null, "information_schema", "SCHEMATA"));
+        System.out.println("getClientInfoProperties");
+        print(c.getMetaData().getClientInfoProperties());
+        System.out.println("getMetaData().getColumns");
+        print(c.getMetaData().getColumns(null, "mysql", null, null));
         c.close();
     }
 }

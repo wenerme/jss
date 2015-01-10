@@ -189,7 +189,14 @@ public class ResultsetCodec implements Packet, Iterator<ResultsetRow>
         row.cells = Lists.newArrayList();
         for (long i = 0; i < fieldCount; i++)
         {
-            row.cells.add(string_lenenc(data.payload));
+            if (data.payload.getUnsignedByte(data.payload.readerIndex()) == Flags.NULL_CELL)
+            {
+                row.cells.add(string_fix(data.payload, 1));
+            } else
+            {
+                row.cells.add(string_lenenc(data.payload));
+            }
+
         }
         return row;
     }

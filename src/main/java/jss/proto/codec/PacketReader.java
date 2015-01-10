@@ -91,22 +91,24 @@ public class PacketReader
             default:
 //                return readResultset(buf, flags);
                 return null;
-
         }
         return PacketReader.readGenericPacket(buf, packet, flags);
     }
 
-    private static ResultsetCodec readResultset(ByteBuf buf, ResultsetCodec rs, int flags)
+    private static ResultsetCodec readResultset(ByteBuf buf, int flags)
     {
         // field count
         // field *
         // eof
         // row *
         // eof | err
-        return null;
+        return new ResultsetCodec().read(buf, flags);
     }
 
-
+    /**
+     * 用于通过反射生成 reader
+     */
+    @SuppressWarnings("unused")
     static ProtocolText readTextPacketForReader(ByteBuf buf, Packet packet, int flags)
     {
         return readCommandPacket(buf, flags);

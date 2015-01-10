@@ -8,12 +8,15 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import java.io.IOException;
 import java.nio.ByteOrder;
+import jss.proto.codec.Codec;
 import jss.proto.codec.PacketCodec;
 import jss.proto.codec.PacketReader;
+import jss.proto.codec.ResultsetCodec;
 import jss.proto.packet.Packet;
 import jss.proto.packet.PacketData;
 import jss.proto.packet.connection.HandshakeResponse41;
 import jss.proto.packet.connection.HandshakeV10;
+import jss.proto.packet.text.ColumnDefinition41;
 import jss.proto.util.Dumper;
 import lombok.extern.slf4j.Slf4j;
 
@@ -60,18 +63,34 @@ public class DumpPacket extends PluginAdapter
 
     private void dumpQueryResult(Engine context)
     {
+        byte[] packet = context.packet;
         try
         {
-            byte[] packet = context.packet;
-            System.out.print(Dumper.hexDump(packet));
-            PacketData data = PacketCodec.readPacket(Unpooled.wrappedBuffer(context.packet)
-                                                             .order(ByteOrder.LITTLE_ENDIAN), new PacketData(), 0);
+            long capabilityFlags = context.handshake.capabilityFlags;
 
-            System.out.println(PacketReader.readQueryResponse(data.payload, (int) context.handshake.capabilityFlags));
+            ByteBuf buf = Unpooled.wrappedBuffer(context.packet).order(ByteOrder.LITTLE_ENDIAN);
+
+            if (Codec.getPacketStatus(buf).unknown())
+            {
+                ResultsetCodec reader = new ResultsetCodec().read(buf, (int) capabilityFlags);
+
+                for (ColumnDefinition41 col : reader.columns())
+                {
+                    System.out.println(col);
+                }
+                while (reader.hasNext())
+                {
+                    System.out.println(reader.next());
+                }
+            } else
+            {
+                System.out.println(Codec.readStatus(buf, new PacketData(), (int) capabilityFlags));
+            }
             System.out.println();
 
         } catch (Exception e)
         {
+            System.out.print(Dumper.hexDump(packet));
             throw new Error(e);
         }
     }

@@ -4,6 +4,7 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import io.netty.buffer.ByteBuf;
 import java.util.List;
+import jss.proto.define.Flags;
 import jss.proto.packet.Packet;
 import jss.proto.util.Stringer;
 
@@ -34,7 +35,14 @@ public class ResultsetRow implements Packet
         {
             for (ByteBuf cell : cells)
             {
-                strings.add(Stringer.string(cell));
+                if (cell != null && cell.readableBytes() > 0 && cell
+                        .getUnsignedByte(cell.readerIndex()) == Flags.NULL_CELL)
+                {
+                    strings.add("NULL");
+                } else
+                {
+                    strings.add(Stringer.string(cell));
+                }
             }
         }
 

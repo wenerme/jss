@@ -138,4 +138,8 @@ public interface Flags extends CapabilityFlags, PacketTypes, MySQLTypes
 
     public static final int NOT_FIXED_DEC = 31;
 
+    /**
+     * 在 ResultsetRow 中表示 NULL 的值
+     */
+    public static final short NULL_CELL = 0xfb;
 }
