@@ -21,7 +21,7 @@ import jss.proto.packet.text.CommandPacket;
 import jss.proto.packet.text.ResultsetRow;
 
 /**
- * 包编码
+ * 单个独立包编码操作
  */
 public class PacketCodec
 {
@@ -244,16 +244,19 @@ public class PacketCodec
         return packet;
     }
 
-    public static ColumnDefinition41 readPacketForCOM_FIELD_LIST(ByteBuf buf, ColumnDefinition41 packet, int flags, CommandPacket command)
+    public static ColumnDefinition41 readPacketForCOM_FIELD_LIST(ByteBuf buf, ColumnDefinition41 packet, int flags)
     {
         readPacket(buf, packet, flags);
 
-        packet.defaultValuesLength = (int) int_lenenc(buf);
-        packet.defaultValues = Lists.newArrayList();
-        do
-        {
-            packet.defaultValues.add(string_lenenc(buf).toString(StandardCharsets.UTF_8));
-        } while (hasMore(buf));
+        long len = int_lenenc(buf);
+        ByteBuf defaultValue = string_fix(buf, (int) len);
+
+//        packet.defaultValuesLength = (int) int_lenenc(buf);
+//        packet.defaultValues = Lists.newArrayList();
+//        do
+//        {
+//            packet.defaultValues.add(string_lenenc(buf).toString(StandardCharsets.UTF_8));
+//        } while (hasMore(buf));
         return packet;
     }
 }

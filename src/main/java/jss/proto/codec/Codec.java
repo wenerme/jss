@@ -7,6 +7,9 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import jss.proto.packet.EOF_Packet;
+import jss.proto.packet.Packet;
+import jss.proto.packet.PacketData;
 import jss.proto.packet.binary.BinaryValue;
 import jss.proto.packet.binary.DateValue;
 import jss.proto.packet.binary.Field;
@@ -14,16 +17,81 @@ import jss.proto.packet.binary.Fields;
 import jss.proto.packet.binary.FloatValue;
 import jss.proto.packet.binary.IntegerValue;
 import jss.proto.packet.binary.TimeValue;
+import jss.util.IsInteger;
+import jss.util.Values;
 import lombok.extern.slf4j.Slf4j;
 
 /**
+ * 包内基本元素编码
+ *
  * @see <a href=http://dev.mysql.com/doc/internals/en/describing-packets.html>packets</a>
  */
 @Slf4j
 public class Codec
 {
 
-    public static final Charset CHARSET = StandardCharsets.UTF_8;
+    private static final Charset CHARSET = StandardCharsets.UTF_8;
+
+
+    /**
+     * 读取状态包.
+     * <p/>
+     * <ul>
+     * <li>读取一个 PacketData</li>
+     * <li>从 PacketData.payload 中读取状态包</li>
+     * </ul>
+     *
+     * @return 状态包, EOF, ERR, OK 或 null
+     */
+    public static Packet readStatus(ByteBuf buf, PacketData packet, int flags)
+    {
+        PacketCodec.readPacket(buf, packet, flags);
+        return readStatus(packet.payload, flags);
+    }
+
+    /**
+     * 读取状态包.会认为 buf 目前是 PacketData 的 payload
+     *
+     * @return 状态包, EOF, ERR, OK 或 null
+     */
+    public static Packet readStatus(ByteBuf buf, int flags)
+    {
+        Status status = getStatus(buf);
+        switch (status)
+        {
+            case EOF:
+                return PacketCodec.readPacket(buf, new EOF_Packet(), flags);
+            case ERR:
+                return PacketCodec.readPacket(buf, new EOF_Packet(), flags);
+            case OK:
+                return PacketCodec.readPacket(buf, new EOF_Packet(), flags);
+            case UNKNOWN:
+                return null;
+            default:
+                throw new AssertionError();
+        }
+    }
+
+    /**
+     * 获取 buf 表示的状态包.会认为 buf 目前是 PacketData 的 payload
+     * <p/>
+     * 不改变 buf 状态
+     */
+    public static Status getStatus(ByteBuf buf)
+    {
+        return Values.fromValue(Status.class, (int) buf.getUnsignedByte(buf.readerIndex()), Status.UNKNOWN);
+    }
+
+    /**
+     * 获取一个包,并返回其状态.会认为 buf 目前是一个 PacketData
+     * <p/>
+     * 不改变 buf 状态
+     */
+    public static Status getPacketStatus(ByteBuf buf)
+    {
+        int status = (int) buf.getUnsignedByte(buf.readerIndex() + 4);
+        return Values.fromValue(Status.class, status, Status.UNKNOWN);
+    }
 
     //region 字段类型编码
 
@@ -398,5 +466,41 @@ public class Codec
     {
         int_lenenc, int1, int2, int3, int4, int6, int8,
         string_lenenc, string_var, string_fix, string_eof, string_nul
+    }
+
+    public static enum Status implements IsInteger
+    {
+        EOF(0xfe), ERR(0xff), OK(0x00), UNKNOWN(-1);
+
+        private final int value;
+
+        Status(int value) {this.value = value;}
+
+        @Override
+        public Integer get()
+        {
+            return value;
+        }
+
+        public boolean ok()
+        {
+            return this == OK;
+        }
+
+        public boolean err()
+        {
+            return this == ERR;
+        }
+
+        public boolean eof()
+        {
+            return this == EOF;
+        }
+
+        public boolean unknown()
+        {
+            return this == UNKNOWN;
+        }
+
     }
 }

@@ -74,7 +74,7 @@ import jss.proto.util.Stringer;
  * href=http://dev.mysql.com/doc/internals/en/com-query-response.html>com
  * -query-response</a>
  */
-public class ColumnDefinition41 implements Packet
+public class ColumnDefinition41 extends ColumnDefinition implements Packet
 {
     public ByteBuf catalog;
     public ByteBuf schema;

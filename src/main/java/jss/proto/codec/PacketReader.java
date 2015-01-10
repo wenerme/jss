@@ -1,12 +1,11 @@
 package jss.proto.codec;
 
-import static jss.proto.codec.Codec.*;
-import static jss.proto.codec.PacketCodec.hasFlag;
+import static jss.proto.codec.Codec.int1;
+import static jss.proto.codec.Codec.string_eof;
 import static jss.proto.codec.PacketCodec.readPacket;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -14,7 +13,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.ByteOrder;
-import java.util.List;
 import java.util.Map;
 import jss.proto.define.Command;
 import jss.proto.define.Flags;
@@ -26,14 +24,14 @@ import jss.proto.packet.Packet;
 import jss.proto.packet.PacketData;
 import jss.proto.packet.ProtocolText;
 import jss.proto.packet.text.COM_QUERY;
-import jss.proto.packet.text.ColumnDefinition41;
 import jss.proto.packet.text.CommandPacket;
 import jss.proto.packet.text.Commands;
-import jss.proto.packet.text.Resultset;
-import jss.proto.packet.text.ResultsetRow;
 import jss.util.Values;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * 读取包的辅助操作
+ */
 @Slf4j
 public class PacketReader
 {
@@ -89,44 +87,22 @@ public class PacketReader
                 packet = new OK_Packet();
                 break;
             case Flags.LOCAL_INFILE:
-
+                throw new AssertionError("不支持 LOCAL_INFILE");
             default:
-                return readResultset(buf, flags);
+//                return readResultset(buf, flags);
+                return null;
 
         }
         return PacketReader.readGenericPacket(buf, packet, flags);
     }
 
-    private static Resultset readResultset(ByteBuf buf, int flags)
+    private static ResultsetCodec readResultset(ByteBuf buf, ResultsetCodec rs, int flags)
     {
         // field count
         // field *
         // eof
         // row *
         // eof | err
-        long fieldCount = int_lenenc(buf);
-        List<ColumnDefinition41> columns = Lists.newArrayList();
-        for (long i = 0; i < fieldCount; i++)
-        {
-            ColumnDefinition41 column = PacketCodec.readPacket(buf, new ColumnDefinition41(), flags);
-            columns.add(column);
-        }
-        if (!hasFlag(flags, Flags.CLIENT_DEPRECATE_EOF))
-        {
-            readPacket(buf, new EOF_Packet(), flags);
-        }
-
-        fieldCount = int_lenenc(buf);
-        for (long i = 0; i < fieldCount; i++)
-        {
-            readPacket(buf, new ResultsetRow(), flags);
-        }
-
-        if (!hasFlag(flags, Flags.CLIENT_DEPRECATE_EOF))
-        {
-            readPacket(buf, new EOF_Packet(), flags);
-        }
-
         return null;
     }
 

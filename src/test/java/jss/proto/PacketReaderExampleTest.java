@@ -5,10 +5,6 @@ import static jss.proto.codec.PacketCodec.readPacket;
 import static org.junit.Assert.assertEquals;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
-import java.io.IOException;
-import java.nio.ByteOrder;
-import java.util.regex.Pattern;
 import jss.proto.define.Flags;
 import jss.proto.packet.EOF_Packet;
 import jss.proto.packet.ERR_Packet;
@@ -17,43 +13,27 @@ import jss.proto.packet.PacketData;
 import jss.proto.packet.connection.AuthSwitchRequest;
 import jss.proto.packet.connection.HandshakeResponse41;
 import jss.proto.packet.text.ColumnDefinition41;
+import jss.proto.util.Dumper;
 import jss.proto.util.Stringer;
-import org.apache.commons.io.HexDump;
 import org.junit.Test;
 
-public class PacketReaderExampleTest extends JSSTest implements Flags
+public class PacketReaderExampleTest extends TestUtil implements Flags
 {
-    public static ByteBuf fromDumpBytes(String dump)
-    {
-        ByteBuf buf = Unpooled.buffer();
-        Pattern reg = Pattern.compile("\\s{2,}([^ \r\n]*[^0-9a-fA-F]+[^ \r\n]*)$", Pattern.MULTILINE);
-//        dump = dump.replace("\\s{5,}.*$", "");// 把具体内容去除
-        dump = reg.matcher(dump).replaceAll("");
-        String[] lines = dump.split("[\n\r]+");
-        for (String line : lines)
-        {
-            String[] split = line.split("\\s+");
-            // 一行最多16个
-            for (int i = 0; i < split.length && i < 16; i++)
-            {
-                String b = split[i];
-                buf.writeByte(Integer.parseInt(b, 16));
-            }
-        }
-
-        return buf.order(ByteOrder.LITTLE_ENDIAN);
-    }
-
-
+    /**
+     * @see <a href=http://dev.mysql.com/doc/internals/en/com-field-list-response.html>com-field-list-response</a>
+     */
     @Test
     public void testCOM_FIELDS_LISTResponse()
     {
+
         String dump = "31 00 00 01 03 64 65 66    04 74 65 73 74 09 66 69    1....def.test.fi\n" +
                 "65 6c 64 6c 69 73 74 09    66 69 65 6c 64 6c 69 73    eldlist.fieldlis\n" +
                 "74 02 69 64 02 69 64 0c    3f 00 0b 00 00 00 03 00    t.id.id.?.......\n" +
                 "00 00 00 00 fb 05 00 00    02 fe 00 00 02 00          ..............";
 
-        PacketData data = dumpBytesToData(dump);
+        ByteBuf buf = fromDumpBytes(dump);
+        PacketData data = readPacket(buf, new PacketData(), 0);
+        // 使用 readPacketForCOM_FIELD_LIST 读取数据长度不一致
         ColumnDefinition41 packet = readPacket(data.payload, new ColumnDefinition41(), 0);
         assertEquals("def", Stringer.string(packet.catalog));
         assertEquals("test", Stringer.string(packet.schema));
@@ -66,7 +46,16 @@ public class PacketReaderExampleTest extends JSSTest implements Flags
         assertEquals(3, packet.type);
         assertEquals(0, packet.flags);
         assertEquals(0, packet.decimals);
+
+        // TODO 最后还有 FB 未读
+        System.out.println(Dumper.hexDumpReadable(data.payload));
+
         System.out.println(packet);
+
+        readPacket(buf, data, 0);
+        EOF_Packet eof = readPacket(data.payload, new EOF_Packet(), 0);
+
+        System.out.println(eof);
     }
 
     @Test
@@ -174,19 +163,4 @@ payload: 0x01
 
     }
 
-    private PacketData dumpBytesToData(String dump)
-    {
-        ByteBuf buf = fromDumpBytes(dump);
-        try
-        {
-            System.out.println("原始内容");
-            System.out.println(dump);
-            System.out.println("解析结果 长度:" + buf.readableBytes());
-            HexDump.dump(buf.copy().array(), 0, System.out, 0);
-        } catch (IOException e)
-        {
-            e.printStackTrace();
-        }
-        return readPacket(buf, new PacketData(), 0);
-    }
 }

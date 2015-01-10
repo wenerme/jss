@@ -49,12 +49,31 @@ public class Dumper
 
     public static String hexDumpReadable(ByteBuf buf)
     {
+        if (buf.readableBytes() == 0)
+        {
+            return "00000000 \n";
+        }
+
         return hexDump(buf.array(), buf.readerIndex());
     }
 
     public static String hexDump(ByteBuf buf)
     {
         return hexDump(buf.array());
+    }
+
+    public static String hexDumpOut(byte[] buf)
+    {
+        String dump = hexDump(buf);
+        System.out.println(dump);
+        return dump;
+    }
+
+    public static String hexDumpOut(ByteBuf buf)
+    {
+        String dump = hexDump(buf.array());
+        System.out.println(dump);
+        return dump;
     }
 
     public static String hexDump(byte[] bytes)

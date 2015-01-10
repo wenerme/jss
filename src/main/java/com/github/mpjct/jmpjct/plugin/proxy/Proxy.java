@@ -10,6 +10,7 @@ import com.github.mpjct.jmpjct.mysql.proto.Packet;
 import com.github.mpjct.jmpjct.mysql.proto.ResultSet;
 import com.github.mpjct.jmpjct.plugin.PluginAdapter;
 import java.io.BufferedInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -198,6 +199,12 @@ public class Proxy extends PluginAdapter
             default:
                 context.buffer = Packet
                         .read_full_result_set(this.mysqlIn, context.clientOut, context.buffer, context.bufferResultSet);
+                ByteArrayOutputStream os = new ByteArrayOutputStream();
+                for (byte[] bytes : context.buffer)
+                {
+                    os.write(bytes);
+                }
+                setPacket(os.toByteArray());
                 break;
         }
     }

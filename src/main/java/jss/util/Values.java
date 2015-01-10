@@ -50,6 +50,15 @@ public class Values
         return result;
     }
 
+    @SafeVarargs
+    public static <T extends Enum & IsValue> void cache(Class<? extends T>... type)
+    {
+        for (Class<? extends T> t : type)
+        {
+            cache(t);
+        }
+    }
+
     public static <V, T extends Enum & IsValue<V>> void cache(Class<T> type)
     {
         for (T item : type.getEnumConstants())
@@ -70,6 +79,13 @@ public class Values
     public static <V, T extends Enum & IsValue<V>> T fromValue(Class<T> type, V v)
     {
         return (T) cache.get(type, v);
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <V, T extends Enum & IsValue<V>> T fromValue(Class<T> type, V v, T forNull)
+    {
+        T val = (T) cache.get(type, v);
+        return val == null ? forNull : val;
     }
 
     public static void main(String[] args)
