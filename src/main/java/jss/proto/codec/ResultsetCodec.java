@@ -64,6 +64,11 @@ public class ResultsetCodec implements Packet, Iterator<ResultsetRow>
     {
     }
 
+    public List<ResultsetRow> rows()
+    {
+        return rows;
+    }
+
     public boolean hasError()
     {
         return hasError;

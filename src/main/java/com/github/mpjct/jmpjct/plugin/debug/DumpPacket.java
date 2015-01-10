@@ -16,8 +16,8 @@ import jss.proto.packet.Packet;
 import jss.proto.packet.PacketData;
 import jss.proto.packet.connection.HandshakeResponse41;
 import jss.proto.packet.connection.HandshakeV10;
-import jss.proto.packet.text.ColumnDefinition41;
 import jss.proto.util.Dumper;
+import jss.util.jdbc.ResultSets;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -74,14 +74,7 @@ public class DumpPacket extends PluginAdapter
             {
                 ResultsetCodec reader = new ResultsetCodec().read(buf, (int) capabilityFlags);
 
-                for (ColumnDefinition41 col : reader.columns())
-                {
-                    System.out.println(col);
-                }
-                while (reader.hasNext())
-                {
-                    System.out.println(reader.next());
-                }
+                ResultSets.print(Dumper.toQueryResult(reader));
             } else
             {
                 System.out.println(Codec.readStatus(buf, new PacketData(), (int) capabilityFlags));

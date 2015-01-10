@@ -1,14 +1,20 @@
 package jss.proto.util;
 
 import com.google.common.base.Throwables;
+import com.google.common.collect.Lists;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufUtil;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.EnumSet;
+import java.util.List;
+import jss.proto.codec.ResultsetCodec;
 import jss.proto.define.MySQLType;
+import jss.proto.packet.text.ColumnDefinition41;
+import jss.proto.packet.text.ResultsetRow;
 import jss.util.IsInteger;
 import jss.util.Values;
+import jss.util.jdbc.QueryResult;
 import org.apache.commons.io.HexDump;
 
 /**
@@ -92,5 +98,40 @@ public class Dumper
             Throwables.propagate(e);
         }
         return Stringer.string(os.toByteArray());
+    }
+
+    public static String dump(ResultsetCodec rs)
+    {
+
+        return null;
+    }
+
+    public static List<String> toStringList(ResultsetRow row)
+    {
+        List<String> to = Lists.newArrayList();
+        for (ByteBuf cell : row.cells)
+        {
+            to.add(Stringer.cell(cell));
+        }
+        return to;
+    }
+
+    @SuppressWarnings("unchecked")
+    public static QueryResult toQueryResult(ResultsetCodec rs)
+    {
+        QueryResult qr = new QueryResult();
+        for (ColumnDefinition41 col : rs.columns())
+        {
+            qr.getColumn().add(Stringer.string(col.name));
+        }
+
+        while (rs.hasNext())/*预加载*/ rs.next();
+
+        for (ResultsetRow row : rs.rows())
+        {
+            qr.getRows().add((List) toStringList(row));
+        }
+
+        return qr;
     }
 }

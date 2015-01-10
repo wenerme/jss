@@ -106,7 +106,11 @@ public class ResultSets
 
     public static void print(ResultSet rs) throws SQLException
     {
-        QueryResult result = toQueryResult(rs);
+        print(toQueryResult(rs));
+    }
+
+    public static void print(QueryResult result) throws SQLException
+    {
         TableDisplay.display(result.getColumn(), result.getRows());
     }
 }
