@@ -23,6 +23,7 @@ import jss.proto.packet.OK_Packet;
 import jss.proto.packet.Packet;
 import jss.proto.packet.PacketData;
 import jss.proto.packet.ProtocolText;
+import jss.proto.packet.connection.AuthSwitchRequest;
 import jss.proto.packet.text.COM_QUERY;
 import jss.proto.packet.text.CommandPacket;
 import jss.proto.packet.text.Commands;
@@ -36,6 +37,7 @@ import lombok.extern.slf4j.Slf4j;
 public class PacketReader
 {
     private static final Map<Class<?>, Reader<?>> CLASS_TO_READER_MAP = Maps.newHashMap();
+    private static final Map<Class<?>, Writer<?>> CLASS_TO_WRITER_MAP = Maps.newHashMap();
 
     static
     {
@@ -43,16 +45,24 @@ public class PacketReader
         {
             if (method.getName().equals("readPacket"))
             {
-                CLASS_TO_READER_MAP.put(method.getReturnType(), new MethodReader<Packet>(method));
+                CLASS_TO_READER_MAP.put(method.getReturnType(), new MethodWrapper<Packet>(method));
                 log.debug("Add reader for {}", method.getReturnType());
+            }
+            if (method.getName().equals("writePacket"))
+            {
+                CLASS_TO_WRITER_MAP.put(method.getParameterTypes()[1], new MethodWrapper<Packet>(method));
+                log.debug("Add writer for {}", method.getReturnType());
             }
         }
         // command packet
         try
         {
-            Method method = PacketReader.class
+            Method read = PacketReader.class
                     .getDeclaredMethod("readTextPacketForReader", ByteBuf.class, Packet.class, int.class);
-            MethodReader<Packet> reader = new MethodReader<>(method);
+            Method write = PacketReader.class
+                    .getDeclaredMethod("writeTextPacketForWriter", ByteBuf.class, Packet.class, int.class);
+            MethodWrapper<Packet> reader = new MethodWrapper<>(read);
+            MethodWrapper<Packet> writer = new MethodWrapper<>(write);
             for (Field field : PacketTypes.class.getDeclaredFields())
             {
                 String name = field.getName();
@@ -62,6 +72,7 @@ public class PacketReader
                     {
                         Class<?> type = Class.forName("jss.proto.packet.text." + name);
                         CLASS_TO_READER_MAP.put(type, reader);
+                        CLASS_TO_WRITER_MAP.put(type, writer);
                         log.debug("Add reader for {}", type);
                     } catch (ClassNotFoundException ignored) { }
                 }
@@ -114,6 +125,12 @@ public class PacketReader
         return readCommandPacket(buf, flags);
     }
 
+    @SuppressWarnings("unused")
+    static ByteBuf writeTextPacketForWriter(ByteBuf buf, Packet packet, int flags)
+    {
+        return writeCommandPacket(buf, (ProtocolText) packet, flags);
+    }
+
     public static ProtocolText readCommandPacket(ByteBuf buf, int flags)
     {
         short command = int1(buf);
@@ -149,6 +166,40 @@ public class PacketReader
         return packet;
     }
 
+    public static ByteBuf writeCommandPacket(ByteBuf buf, ProtocolText packet, int flags)
+    {
+        int command = ((CommandPacket) packet).command;
+        switch (command)
+        {
+            case Flags.COM_SLEEP:
+            case Flags.COM_QUIT:
+            case Flags.COM_STATISTICS:
+            case Flags.COM_PROCESS_INFO:
+            case Flags.COM_CONNECT:
+            case Flags.COM_DEBUG:
+            case Flags.COM_PING:
+            case Flags.COM_TIME:
+            case Flags.COM_DELAYED_INSERT:
+            case Flags.COM_BINLOG_DUMP:
+            case Flags.COM_TABLE_DUMP:
+            case Flags.COM_CONNECT_OUT:
+            case Flags.COM_REGISTER_SLAVE:
+            case Flags.COM_STMT_FETCH:
+            case Flags.COM_DAEMON:
+            case Flags.COM_BINLOG_DUMP_GTID:
+            case Flags.COM_RESET_CONNECTION:
+                int1(buf, command);
+                break;
+            case Flags.COM_QUERY:
+                string_eof(buf, ((COM_QUERY) packet).query);
+                break;
+            default:
+                throw new AssertionError("不支持的类型 " + Values.fromValue(Command.class, (int) command));
+        }
+
+        return buf;
+    }
+
     /**
      * @return OK ERR EOF null
      */
@@ -182,9 +233,23 @@ public class PacketReader
     }
 
     @SuppressWarnings("unchecked")
+    public static <T extends Packet> ByteBuf writeGenericPacket(ByteBuf buf, T packet, int flags)
+    {
+        Writer<T> reader = getWriterByPacketClass((Class<T>) packet.getClass());
+        Preconditions.checkNotNull(reader, "No writer for " + packet.getClass());
+        return reader.writePacket(buf, packet, flags);
+    }
+
+    @SuppressWarnings("unchecked")
     static <T extends Packet> Reader<T> getReaderByPacketClass(Class<T> type)
     {
         return (Reader<T>) CLASS_TO_READER_MAP.get(type);
+    }
+
+    @SuppressWarnings("unchecked")
+    static <T extends Packet> Writer<T> getWriterByPacketClass(Class<T> type)
+    {
+        return (Writer<T>) CLASS_TO_WRITER_MAP.get(type);
     }
 
     public static <T extends Packet> T readPacketPayload(byte[] buf, T packet, int flags)
@@ -204,24 +269,33 @@ public class PacketReader
         }
     }
 
+    public static AuthSwitchRequest createPacket(Class<? extends Packet> clazz)
+    {
+        return null;
+    }
+
     interface Reader<P extends Packet>
     {
         P readPacket(ByteBuf buf, P packet, int flags);
     }
 
+    interface Writer<T extends Packet>
+    {
+        ByteBuf writePacket(ByteBuf buf, T packet, int flags);
+    }
 
-    private static class MethodReader<P extends Packet> implements Reader<P>
+    private static class MethodWrapper<P extends Packet> implements Reader<P>, Writer<P>
     {
         private final Method method;
         private final Object target;
 
 
-        private MethodReader(Method method)
+        private MethodWrapper(Method method)
         {
             this(method, null);
         }
 
-        private MethodReader(Method method, Object target)
+        private MethodWrapper(Method method, Object target)
         {
             this.method = method;
             this.target = target;
@@ -234,6 +308,22 @@ public class PacketReader
             try
             {
                 return (P) method.invoke(target, buf, packet, flags);
+            } catch (InvocationTargetException e)
+            {
+                Throwables.propagate(e.getCause());
+            } catch (Exception e)
+            {
+                Throwables.propagate(e);
+            }
+            return null;
+        }
+
+        @Override
+        public ByteBuf writePacket(ByteBuf buf, P packet, int flags)
+        {
+            try
+            {
+                return (ByteBuf) method.invoke(target, buf, packet, flags);
             } catch (InvocationTargetException e)
             {
                 Throwables.propagate(e.getCause());

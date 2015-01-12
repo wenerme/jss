@@ -1,8 +1,11 @@
 package com.mysql.jdbc;
 
+import com.google.common.reflect.ClassPath;
+import java.io.IOException;
 import java.lang.reflect.Field;
 import jss.proto.define.Command;
 import jss.proto.define.MySQLTypes;
+import jss.proto.packet.Packet;
 import org.junit.Test;
 
 public class Generator
@@ -43,6 +46,21 @@ public class Generator
         {
 //            System.out.println(classText.replace("MYSQL_TYPE_DECIMAL", field.getName()));
             System.out.printf("case %s: return new %1$s();%n", field.getName());
+        }
+    }
+
+    @Test
+    public void genPacketType() throws IOException
+    {
+        String packageName = "jss.proto";
+        for (ClassPath.ClassInfo info : ClassPath.from(ClassLoader.getSystemClassLoader())
+                                                 .getTopLevelClassesRecursive(packageName))
+        {
+            Class<?> clazz = info.load();
+            if (Packet.class.isAssignableFrom(clazz))
+            {
+                System.out.printf("/** @see %s */%s,%n", clazz.getCanonicalName(), clazz.getSimpleName());
+            }
         }
     }
 }

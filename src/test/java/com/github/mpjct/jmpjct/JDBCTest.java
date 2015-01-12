@@ -10,13 +10,14 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.Statement;
+import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 
 public class JDBCTest
 {
-    @Test
-    public void test() throws Exception
+    @BeforeClass
+    public static void setup()
     {
         new Thread(new Runnable()
         {
@@ -32,7 +33,18 @@ public class JDBCTest
                 }
             }
         }).start();
-        Thread.sleep(1000);
+        try
+        {
+            Thread.sleep(1000);
+        } catch (InterruptedException e)
+        {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    public void test() throws Exception
+    {
         System.out.println("初始化完成");
 //        Connection c = DriverManager.getConnection("jdbc:mysql://localhost:5050/test?useServerPrepStmts=true", "root", "");
         Connection c = DriverManager.getConnection("jdbc:mysql://localhost:5050/test", "root", "");
@@ -91,21 +103,6 @@ public class JDBCTest
     @Test
     public void testDBMetaData() throws Exception
     {
-        new Thread(new Runnable()
-        {
-            @Override
-            public void run()
-            {
-                try
-                {
-                    JMP.main(null);
-                } catch (IOException e)
-                {
-                    e.printStackTrace();
-                }
-            }
-        }).start();
-        Thread.sleep(1000);
         System.out.println("初始化完成");
 //        Connection c = DriverManager.getConnection("jdbc:mysql://localhost:5050/test?useServerPrepStmts=true", "root", "");
         Connection c = DriverManager.getConnection("jdbc:mysql://localhost:5050/information_schema", "root", "");
@@ -124,21 +121,6 @@ public class JDBCTest
     @Test
     public void testRSMetaData() throws Exception
     {
-        new Thread(new Runnable()
-        {
-            @Override
-            public void run()
-            {
-                try
-                {
-                    JMP.main(null);
-                } catch (IOException e)
-                {
-                    e.printStackTrace();
-                }
-            }
-        }).start();
-        Thread.sleep(1000);
         System.out.println("初始化完成");
 //        Connection c = DriverManager.getConnection("jdbc:mysql://localhost:5050/test?useServerPrepStmts=true", "root", "");
         Connection c = DriverManager.getConnection("jdbc:mysql://localhost:5050/information_schema", "root", "");

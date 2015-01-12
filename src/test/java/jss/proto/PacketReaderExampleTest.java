@@ -33,6 +33,7 @@ public class PacketReaderExampleTest extends TestUtil implements Flags
 
         ByteBuf buf = fromDumpBytes(dump);
         PacketData data = readPacket(buf, new PacketData(), 0);
+        assertEncode(data, 0);
         // 使用 readPacketForCOM_FIELD_LIST 读取数据长度不一致
         ColumnDefinition41 packet = readPacket(data.payload, new ColumnDefinition41(), 0);
         assertEquals("def", Stringer.string(packet.catalog));
@@ -47,6 +48,7 @@ public class PacketReaderExampleTest extends TestUtil implements Flags
         assertEquals(0, packet.flags);
         assertEquals(0, packet.decimals);
 
+        assertEncode(packet, 0);
         // TODO 最后还有 FB 未读
         System.out.println(Dumper.hexDumpReadable(data.payload));
 
@@ -54,7 +56,7 @@ public class PacketReaderExampleTest extends TestUtil implements Flags
 
         readPacket(buf, data, 0);
         EOF_Packet eof = readPacket(data.payload, new EOF_Packet(), 0);
-
+        assertEncode(eof, 0);
         System.out.println(eof);
     }
 
@@ -67,6 +69,7 @@ public class PacketReaderExampleTest extends TestUtil implements Flags
         AuthSwitchRequest authSwitchRequest = readPacket(data.payload, new AuthSwitchRequest(), 0);
         assertEquals("mysql_native_password", Stringer.string(authSwitchRequest.pluginName));
         System.out.println(authSwitchRequest);
+        assertEncode(authSwitchRequest, 0);
     }
 
     @Test
@@ -85,9 +88,11 @@ public class PacketReaderExampleTest extends TestUtil implements Flags
                 "6c 61 74 66 6f 72 6d 06    78 38 36 5f 36 34 03 66    latform.x86_64.f\n" +
                 "6f 6f 03 62 61 72                                     oo.bar");
 
-        HandshakeResponse41 handshakeResponse41 = readPacket(data.payload, new HandshakeResponse41(), CLIENT_PROTOCOL_41 | CLIENT_PLUGIN_AUTH | CLIENT_SECURE_CONNECTION | CLIENT_CONNECT_WITH_DB);
-
+        int flags = CLIENT_PROTOCOL_41 | CLIENT_PLUGIN_AUTH | CLIENT_SECURE_CONNECTION | CLIENT_CONNECT_WITH_DB;
+        HandshakeResponse41 handshakeResponse41 = readPacket(data.payload, new HandshakeResponse41(), flags);
+        flags = handshakeResponse41.capabilityFlags;
         System.out.println(handshakeResponse41);
+        assertEncode(handshakeResponse41, flags);
     }
 
     @Test
@@ -103,6 +108,8 @@ public class PacketReaderExampleTest extends TestUtil implements Flags
         HandshakeResponse41 handshakeResponse41 = readPacket(data.payload, new HandshakeResponse41(), CLIENT_PROTOCOL_41 | CLIENT_PLUGIN_AUTH | CLIENT_SECURE_CONNECTION | CLIENT_CONNECT_WITH_DB);
 
         System.out.println(handshakeResponse41);
+        assertEncode(handshakeResponse41, handshakeResponse41.capabilityFlags);
+
     }
 
     @Test
@@ -113,6 +120,7 @@ public class PacketReaderExampleTest extends TestUtil implements Flags
         EOF_Packet eof_packet = readPacket(data.payload, new EOF_Packet(), CLIENT_PROTOCOL_41);
         assertEquals(SERVER_STATUS_AUTOCOMMIT, eof_packet.statusFlags);
         assertEquals(0, eof_packet.warnings);
+        assertEncode(eof_packet, CLIENT_PROTOCOL_41);
     }
 
     @Test
@@ -129,8 +137,9 @@ payload: 0x01
         PacketData data = dumpBytesToData("01 00 00 00 01");
         assertEquals(1, data.payloadLength);
         assertEquals(0, data.sequenceId);
-        assertEquals(1, data.payload.readByte());
+        assertEquals(1, data.payload.getByte(data.payload.readerIndex()));
 
+        assertEncode(data, CLIENT_PROTOCOL_41);
     }
 
     @Test
@@ -146,6 +155,7 @@ payload: 0x01
         assertEquals("No tables used", errPacket.errorMessage.toString(UTF_8));
 
         System.out.println(errPacket);
+        assertEncode(errPacket, CLIENT_PROTOCOL_41);
     }
 
     @Test
@@ -160,6 +170,8 @@ payload: 0x01
         assertEquals(0, okPacket.lastInsertId);
         assertEquals(0, okPacket.warnings);
         assertEquals(SERVER_STATUS_AUTOCOMMIT, okPacket.statusFlags);
+
+        assertEncode(okPacket, CLIENT_PROTOCOL_41);
 
     }
 

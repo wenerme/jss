@@ -208,13 +208,14 @@ public class Codec
      *
      * @return 返回长度, 1 2 3 8
      */
-    public static int int_lenenc(ByteBuf buf, long value)
+    public static ByteBuf int_lenenc(ByteBuf buf, long value)
     {
         int size;
         if (value < 251)
         {
             size = 1;
-            buf.writeByte(1);
+            // 为 1 的不写入长度
+            return buf.writeByte((int) value);
         } else if (value < 65535)
         {
             size = 2;
@@ -236,29 +237,29 @@ public class Codec
      * 写入固定长度的整数
      *
      * @param size 整数长度 1 2 3 4 6 8
-     * @return size
+     * @return buf
      */
-    public static int int_fixed(ByteBuf buf, long value, int size)
+    public static ByteBuf int_fixed(ByteBuf buf, long value, int size)
     {
-        int i = (int) value;
+        int v = (int) value;
         switch (size)
         {
             case 1:
-                buf.writeByte(i);
+                buf.writeByte(v);
                 break;
             case 2:
-                buf.writeShort(i);
+                buf.writeShort(v);
                 break;
             case 3:
-                buf.writeMedium(i);
+                buf.writeMedium(v);
                 break;
             case 4:
-                buf.writeInt(i);
+                buf.writeInt(v);
                 break;
             case 6:
                 // 2+4
-                buf.writeShort((int) (value >> 32 & 0xffff))
-                   .writeInt(i);
+                buf.writeShort((int) (value >> 32))
+                   .writeInt(v);
                 break;
             case 8:
                 buf.writeLong(value);
@@ -266,7 +267,7 @@ public class Codec
             default:
                 throw new AssertionError();
         }
-        return size;
+        return buf;
     }
 
     /**
@@ -337,6 +338,29 @@ public class Codec
         }
     }
 
+    public static ByteBuf int_fixed(ByteBuf buf, int v, int size)
+    {
+        switch (size)
+        {
+            case 1:
+                return buf.writeByte(v);
+            case 2:
+                return buf.writeShort(v);
+            case 3:
+                return buf.writeMedium(v);
+            case 4:
+                return buf.writeInt(v);
+            case 6:
+                buf.writeShort(0);
+                return buf.writeInt(v);
+            case 8:
+                return buf.writeLong(v);
+            default:
+                throw new AssertionError();
+        }
+    }
+
+
     public static byte int1(ByteBuf buf)
     {
         return (byte) int_fixed(buf, 1);
@@ -367,6 +391,56 @@ public class Codec
         return int_fixed(buf, 8);
     }
 
+    public static ByteBuf int1(ByteBuf buf, int val)
+    {
+        return int_fixed(buf, val, 1);
+    }
+
+    public static ByteBuf int2(ByteBuf buf, int val)
+    {
+        return int_fixed(buf, val, 2);
+    }
+
+    public static ByteBuf int3(ByteBuf buf, int val)
+    {
+        return int_fixed(buf, val, 3);
+    }
+
+    public static ByteBuf int4(ByteBuf buf, int val)
+    {
+        return int_fixed(buf, val, 4);
+    }
+
+    public static ByteBuf int1(ByteBuf buf, long val)
+    {
+        return int_fixed(buf, val, 1);
+    }
+
+    public static ByteBuf int2(ByteBuf buf, long val)
+    {
+        return int_fixed(buf, val, 2);
+    }
+
+    public static ByteBuf int3(ByteBuf buf, long val)
+    {
+        return int_fixed(buf, val, 3);
+    }
+
+    public static ByteBuf int4(ByteBuf buf, long val)
+    {
+        return int_fixed(buf, val, 4);
+    }
+
+    public static ByteBuf int6(ByteBuf buf, long val)
+    {
+        return int_fixed(buf, val, 6);
+    }
+
+    public static ByteBuf int8(ByteBuf buf, long val)
+    {
+        return int_fixed(buf, val, 8);
+    }
+
     // endregion
 
     // region 字符串操作
@@ -387,9 +461,19 @@ public class Codec
         return buf.readBytes(size);
     }
 
+    public static ByteBuf string_var(ByteBuf buf, ByteBuf string, int size)
+    {
+        return buf.writeBytes(string, string.readerIndex(), size);
+    }
+
     public static ByteBuf string_eof(ByteBuf buf)
     {
         return buf.readBytes(buf.readableBytes());
+    }
+
+    public static ByteBuf string_eof(ByteBuf buf, ByteBuf string)
+    {
+        return writeReadable(buf, string);
     }
 
     public static ByteBuf string_nul(ByteBuf buf)
@@ -417,31 +501,37 @@ public class Codec
     public static ByteBuf string_lenenc(ByteBuf buf, ByteBuf string)
     {
         int_lenenc(buf, string.readableBytes());
-        return buf.writeBytes(string);
+        return writeReadable(buf, string);
     }
 
     public static ByteBuf string_fix(ByteBuf buf, String string, int size)
     {
-        buf.writeBytes(string.substring(0, size).getBytes(CHARSET));
-        return buf;
+        return buf.writeBytes(string.substring(0, size).getBytes(CHARSET));
     }
 
     public static ByteBuf string_fix(ByteBuf buf, ByteBuf string, int size)
     {
-        buf.writeBytes(string, size);
-        return string;
+        return buf.writeBytes(string, string.readerIndex(), size);
     }
 
     public static ByteBuf string(ByteBuf buf, ByteBuf string)
     {
-        buf.writeBytes(string, string.readableBytes());
-        return string;
+        return string_eof(buf, string);
     }
 
     public static ByteBuf string_nul(ByteBuf buf, ByteBuf string)
     {
-        buf.writeBytes(string).writeByte(0);
-        return string;
+//        if (string != null)
+        writeReadable(buf, string);
+        return buf.writeByte(0);
+    }
+
+    /**
+     * 不会影响 src 的 readerIndex
+     */
+    private static ByteBuf writeReadable(ByteBuf to, ByteBuf src)
+    {
+        return to.writeBytes(src, src.readerIndex(), src.readableBytes());
     }
 
     public static String asString(ByteBuf buf)
