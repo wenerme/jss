@@ -12,9 +12,9 @@ public class ServerConnection implements AutoCloseable, JSSDefine
     private JSSServer server;
     private int capabilityFlags = CapabilityFlags.CLIENT_BASIC_FLAGS;
 
-    public String serverVersion()
+    public String getServerVersion()
     {
-        return "5.5.5-10.0.15-MariaDB-JSS v0.1";
+        return "5.5.5-10.0.15-JSS v0.1";
     }
 
     /**

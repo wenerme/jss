@@ -157,7 +157,7 @@ public class PacketCodec
         {
             packet.characterSet = int1(buf);
             packet.statusFlags = int2(buf);
-            packet.capabilityFlags |= (int2(buf) << 16);// upper 2 bytes
+            flags = packet.capabilityFlags |= (int2(buf) << 16);// upper 2 bytes
 
             if (hasFlag(flags, CLIENT_PLUGIN_AUTH))
             {

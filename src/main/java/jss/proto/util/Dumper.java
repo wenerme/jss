@@ -26,7 +26,7 @@ public class Dumper
     public static <T extends Enum<T> & IsInteger> String dump(long flags, Class<T> type)
     {
         EnumSet<T> set = Values.asEnumSet(flags, type);
-        return String.format("%s -> %s", Long.toBinaryString(flags), set);
+        return String.format("%s -> %s", flags, set);
     }
 
 

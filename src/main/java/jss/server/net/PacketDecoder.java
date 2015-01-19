@@ -19,7 +19,7 @@ public class PacketDecoder extends ByteToMessageDecoder implements JSSDefine
     @Override
     public void handlerAdded(ChannelHandlerContext ctx) throws Exception
     {
-        connection = ctx.attr(SERVER_CONNECTION_ATTRIBUTE).get();
+        connection = ctx.channel().attr(SERVER_CONNECTION_ATTRIBUTE).get();
     }
 
     @Override
@@ -34,6 +34,7 @@ public class PacketDecoder extends ByteToMessageDecoder implements JSSDefine
 
     private void tryReadPacket(ByteBuf in, List<Object> out)
     {
+        in = Buffers.order(in);
         in.markReaderIndex();
         int length = Codec.int3(in);
         in.resetReaderIndex();

@@ -38,4 +38,9 @@ public class PacketData implements Packet
     public int payloadLength;
     public int sequenceId = 0;
     public ByteBuf payload;
+
+    public int payloadLength()
+    {
+        return payload == null ? -1 : payload.readableBytes();
+    }
 }
