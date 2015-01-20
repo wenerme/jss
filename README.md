@@ -3,6 +3,5 @@ can monitor, analyze or transform their communication. Written with a modular, t
 structure, you can write plugins to convert queries, update/modify result sets, redirect
 traffic, automatically shard, anything you want.
 
-
-[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/MPjct/jmpjct/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
-
+JSS Java SQL Server
+-------------------
