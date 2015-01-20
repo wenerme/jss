@@ -37,7 +37,7 @@ public class Dumper
 
     public static String hexDumpReadable(ByteBuf buf)
     {
-        if (buf.readableBytes() == 0)
+        if (buf == null || buf.isReadable())
         {
             return "00000000 \n";
         }

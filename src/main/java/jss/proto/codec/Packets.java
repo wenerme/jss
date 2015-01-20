@@ -27,6 +27,7 @@ import jss.proto.packet.connection.AuthSwitchRequest;
 import jss.proto.packet.text.COM_QUERY;
 import jss.proto.packet.text.CommandPacket;
 import jss.proto.packet.text.Commands;
+import jss.proto.util.Buffers;
 import jss.util.Values;
 import lombok.extern.slf4j.Slf4j;
 
@@ -34,7 +35,7 @@ import lombok.extern.slf4j.Slf4j;
  * 读取包的辅助操作
  */
 @Slf4j
-public class PacketReader
+public class Packets
 {
     private static final Map<Class<?>, Reader<?>> CLASS_TO_READER_MAP = Maps.newHashMap();
     private static final Map<Class<?>, Writer<?>> CLASS_TO_WRITER_MAP = Maps.newHashMap();
@@ -57,9 +58,9 @@ public class PacketReader
         // command packet
         try
         {
-            Method read = PacketReader.class
+            Method read = Packets.class
                     .getDeclaredMethod("readTextPacketForReader", ByteBuf.class, Packet.class, int.class);
-            Method write = PacketReader.class
+            Method write = Packets.class
                     .getDeclaredMethod("writeTextPacketForWriter", ByteBuf.class, Packet.class, int.class);
             MethodWrapper<Packet> reader = new MethodWrapper<>(read);
             MethodWrapper<Packet> writer = new MethodWrapper<>(write);
@@ -103,16 +104,11 @@ public class PacketReader
 //                return readResultset(buf, flags);
                 return null;
         }
-        return PacketReader.readGenericPacket(buf, packet, flags);
+        return Packets.readGenericPacket(buf, packet, flags);
     }
 
     private static ResultsetCodec readResultset(ByteBuf buf, int flags)
     {
-        // field count
-        // field *
-        // eof
-        // row *
-        // eof | err
         return new ResultsetCodec().read(buf, flags);
     }
 
@@ -221,7 +217,7 @@ public class PacketReader
             default:
                 throw new AssertionError("不支持的返回包结果 " + type);
         }
-        return PacketReader.readGenericPacket(buf, packetObject, flags);
+        return Packets.readGenericPacket(buf, packetObject, flags);
     }
 
     @SuppressWarnings("unchecked")
@@ -272,6 +268,14 @@ public class PacketReader
     public static AuthSwitchRequest createPacket(Class<? extends Packet> clazz)
     {
         return null;
+    }
+
+    public static PacketData wrapPacket(Packet packet, int sequenceId, int flags)
+    {
+        PacketData data = new PacketData();
+        data.sequenceId = sequenceId;
+        data.payload = writeGenericPacket(Buffers.buffer(), packet, flags);
+        return data;
     }
 
 

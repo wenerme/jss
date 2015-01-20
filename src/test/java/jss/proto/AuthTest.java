@@ -4,7 +4,9 @@ import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.ChannelPipeline;
@@ -19,8 +21,12 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import jss.proto.codec.PacketCodec;
+import jss.proto.codec.Packets;
+import jss.proto.define.CapabilityFlags;
+import jss.proto.define.Flags;
 import jss.proto.packet.PacketData;
 import jss.proto.packet.connection.HandshakeV10;
+import jss.proto.util.Buffers;
 import jss.proto.util.Dumper;
 import jss.server.ServerConnection;
 import jss.server.net.JSSDefine;
@@ -66,6 +72,14 @@ public class AuthTest extends TestUtil implements JSSDefine
                      p.addLast(new PacketDecoder());
                      p.addLast(new PacketEncoder());
                      p.addLast(new PacketHandler());
+                     p.addLast("exception", new ChannelDuplexHandler()
+                     {
+                         @Override
+                         public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception
+                         {
+                             cause.printStackTrace();
+                         }
+                     });
                  }
              });
             // Start the server.
@@ -96,6 +110,32 @@ public class AuthTest extends TestUtil implements JSSDefine
     public void clientLocal() throws SQLException
     {
         Connection c = DriverManager.getConnection("jdbc:mysql://localhost:3306/test", "root", "");
+    }
+
+    @Test
+    public void testHandshakePacket()
+    {
+        HandshakeV10 handshake = new HandshakeV10();
+        handshake.serverVersion = buf(JSSDefine.SERVER_VERSION);
+        handshake.capabilityFlags = CapabilityFlags.CLIENT_BASIC_FLAGS;
+        handshake.challenge1 = buf("12345678");
+        handshake.connectionId = 1;
+        handshake.characterSet = 33;
+        handshake.challenge2 = buf("1234567890123");
+        byte[] reserved = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+        handshake.reserved = Unpooled.wrappedBuffer(reserved);
+        handshake.authPluginName = buf(Flags.MYSQL_NATIVE_PASSWORD);
+        handshake.statusFlags = 10;
+        {
+            PacketData data = Packets.wrapPacket(handshake, 0, CapabilityFlags.CLIENT_BASIC_FLAGS);
+            ByteBuf buf = Packets.writeGenericPacket(Buffers.buffer(), data, CapabilityFlags.CLIENT_BASIC_FLAGS);
+            Dumper.hexDumpOut(buf);
+        }
+        {
+            PacketData data = Packets.wrapPacket(handshake, 0, CapabilityFlags.CLIENT_BASIC_FLAGS);
+            ByteBuf buf = Packets.writeGenericPacket(Buffers.buffer(), data, CapabilityFlags.CLIENT_BASIC_FLAGS);
+            Dumper.hexDumpOut(buf);
+        }
     }
 
     @Test
@@ -148,10 +188,10 @@ public class AuthTest extends TestUtil implements JSSDefine
         PacketData data = PacketCodec.readPacket(buf, new PacketData(), 0);
         HandshakeV10 handshake = PacketCodec.readPacket(data.payload, new HandshakeV10(), 0);
         System.out.println(handshake);
-        ByteBuf byteBuf = PacketCodec.writePacket(Unpooled.buffer(), handshake, handshake.capabilityFlags);
+        ByteBuf byteBuf = PacketCodec.writePacket(Buffers.buffer(), handshake, handshake.capabilityFlags);
 
         data.payload.resetReaderIndex();
         System.out.println(Dumper
-                .hexDumpReadable(PacketCodec.writePacket(Unpooled.buffer().order(ByteOrder.LITTLE_ENDIAN), data, 0)));
+                .hexDumpReadable(PacketCodec.writePacket(Buffers.buffer().order(ByteOrder.LITTLE_ENDIAN), data, 0)));
     }
 }

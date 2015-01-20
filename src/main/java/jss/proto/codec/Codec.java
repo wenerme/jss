@@ -473,6 +473,9 @@ public class Codec
 
     public static ByteBuf string_eof(ByteBuf buf, ByteBuf string)
     {
+        // EOF 的时候允许该信息为 NULL, 即不写入信息
+        if (string == null)
+            return buf;
         return writeReadable(buf, string);
     }
 

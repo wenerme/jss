@@ -1,6 +1,6 @@
 package com.github.mpjct.jmpjct.plugin.debug;
 
-import static jss.proto.codec.PacketReader.readPacketPayload;
+import static jss.proto.codec.Packets.readPacketPayload;
 
 import com.github.mpjct.jmpjct.Engine;
 import com.github.mpjct.jmpjct.plugin.PluginAdapter;
@@ -10,7 +10,7 @@ import java.io.IOException;
 import java.nio.ByteOrder;
 import jss.proto.codec.Codec;
 import jss.proto.codec.PacketCodec;
-import jss.proto.codec.PacketReader;
+import jss.proto.codec.Packets;
 import jss.proto.codec.ResultsetCodec;
 import jss.proto.packet.Packet;
 import jss.proto.packet.PacketData;
@@ -53,7 +53,7 @@ public class DumpPacket extends PluginAdapter
             PacketData data = PacketCodec.readPacket(Unpooled.wrappedBuffer(context.packet)
                                                              .order(ByteOrder.LITTLE_ENDIAN), new PacketData(), 0);
 
-            System.out.println(PacketReader.readResultPacket(data.payload, (int) context.handshake.capabilityFlags));
+            System.out.println(Packets.readResultPacket(data.payload, (int) context.handshake.capabilityFlags));
             System.out.println();
         } catch (Exception e)
         {
@@ -120,7 +120,7 @@ public class DumpPacket extends PluginAdapter
         PacketData data = PacketCodec.readPacket(buf, new PacketData(), 0);
         try
         {
-            System.out.println(PacketReader.readCommandPacket(data.payload, (int) context.handshake.capabilityFlags));
+            System.out.println(Packets.readCommandPacket(data.payload, (int) context.handshake.capabilityFlags));
             System.out.println();
 
         } catch (Exception e)

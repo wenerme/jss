@@ -135,7 +135,7 @@ sequence_id: x00
 payload: 0x01
  */
         PacketData data = dumpBytesToData("01 00 00 00 01");
-        assertEquals(1, data.payloadLength);
+        assertEquals(1, data.payloadLength());
         assertEquals(0, data.sequenceId);
         assertEquals(1, data.payload.getByte(data.payload.readerIndex()));
 

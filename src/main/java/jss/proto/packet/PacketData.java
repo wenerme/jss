@@ -1,8 +1,9 @@
 package jss.proto.packet;
 
 import io.netty.buffer.ByteBuf;
+import jss.proto.util.Buffers;
+import jss.proto.util.Dumper;
 import lombok.EqualsAndHashCode;
-import lombok.ToString;
 
 /**
  * <pre>
@@ -31,16 +32,24 @@ import lombok.ToString;
  *
  * @see <a href=http://dev.mysql.com/doc/internals/en/mysql-packet.html>packet</a>
  */
-@ToString
 @EqualsAndHashCode
 public class PacketData implements Packet
 {
-    public int payloadLength;
     public int sequenceId = 0;
     public ByteBuf payload;
 
     public int payloadLength()
     {
-        return payload == null ? -1 : payload.readableBytes();
+        return Buffers.length(payload);
+    }
+
+    @Override
+    public String toString()
+    {
+        return "PacketData{" +
+                "sequenceId=" + sequenceId +
+                ", payloadLength=" + payloadLength() +
+                ", payload=" + Dumper.dump(payload) +
+                '}';
     }
 }

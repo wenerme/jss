@@ -5,6 +5,7 @@ import jss.proto.define.CapabilityFlag;
 import jss.proto.define.Flags;
 import jss.proto.define.StatusFlag;
 import jss.proto.packet.Packet;
+import jss.proto.util.Buffers;
 import jss.proto.util.Dumper;
 import jss.proto.util.Stringer;
 
@@ -72,10 +73,13 @@ public class HandshakeV10 implements Packet
     public int characterSet = 0;
     public int statusFlags = 0;
     public ByteBuf challenge2;
-    public int authPluginDataLength = 0;
     public ByteBuf authPluginName;
     public ByteBuf reserved;
 
+    public int authPluginDataLength()
+    {
+        return Buffers.length(challenge1) + Buffers.length(challenge2);
+    }
 
     @Override
     public String toString()
@@ -90,7 +94,7 @@ public class HandshakeV10 implements Packet
                 ", characterSet=" + characterSet +
                 ", statusFlags=" + Dumper.dump(statusFlags, StatusFlag.class) +
                 ", challenge2=" + Stringer.string(challenge2) +
-                ", authPluginDataLength=" + authPluginDataLength +
+                ", authPluginDataLength=" + authPluginDataLength() +
                 ", authPluginName=" + Stringer.string(authPluginName) +
                 ", reserved=" + Stringer.string(reserved) +
                 '}';

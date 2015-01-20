@@ -7,14 +7,18 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
 import java.util.List;
 import jss.proto.codec.Codec;
+import jss.proto.codec.Packets;
 import jss.proto.packet.PacketData;
+import jss.proto.packet.ProtocolText;
 import jss.proto.packet.connection.HandshakeResponse41;
+import jss.proto.util.Buffers;
 import jss.server.ServerConnection;
 
 public class PacketDecoder extends ByteToMessageDecoder implements JSSDefine
 {
 
     private ServerConnection connection;
+    private State state = State.HandshakeResponse;
 
     @Override
     public void handlerAdded(ChannelHandlerContext ctx) throws Exception
@@ -25,15 +29,9 @@ public class PacketDecoder extends ByteToMessageDecoder implements JSSDefine
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception
     {
-
         if (in.readableBytes() < 4)
             return;
 
-        tryReadPacket(in, out);
-    }
-
-    private void tryReadPacket(ByteBuf in, List<Object> out)
-    {
         in = Buffers.order(in);
         in.markReaderIndex();
         int length = Codec.int3(in);
@@ -42,9 +40,40 @@ public class PacketDecoder extends ByteToMessageDecoder implements JSSDefine
             return;
 
         PacketData data = readPacket(in, new PacketData(), connection.getCapabilityFlags());
-        HandshakeResponse41 response = readPacket(data.payload, new HandshakeResponse41(), connection
-                .getCapabilityFlags());
+        switch (state)
+        {
+            case HandshakeResponse:
+            {
+                HandshakeResponse41 response = readPacket(data.payload, new HandshakeResponse41(), connection
+                        .getCapabilityFlags());
+                out.add(response);
+                state = State.Command;
+            }
+            break;
+            case Command:
+            {
+                ProtocolText command = Packets.readCommandPacket(data.payload, connection.getCapabilityFlags());
+                out.add(command);
+            }
+            break;
+        }
 
-        out.add(response);
     }
+
+    public <T> T create(Class<T> type)
+    {
+        try
+        {
+            return type.newInstance();
+        } catch (Exception e)
+        {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public enum State
+    {
+        HandshakeResponse, Command
+    }
+
 }

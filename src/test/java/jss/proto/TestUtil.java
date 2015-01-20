@@ -1,8 +1,8 @@
 package jss.proto;
 
 import static jss.proto.codec.PacketCodec.readPacket;
-import static jss.proto.codec.PacketReader.readGenericPacket;
-import static jss.proto.codec.PacketReader.writeGenericPacket;
+import static jss.proto.codec.Packets.readGenericPacket;
+import static jss.proto.codec.Packets.writeGenericPacket;
 import static org.junit.Assert.assertEquals;
 
 import io.netty.buffer.ByteBuf;

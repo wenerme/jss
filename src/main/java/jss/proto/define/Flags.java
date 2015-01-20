@@ -3,8 +3,9 @@ package jss.proto.define;
 /**
  * Just a list of important flags that the Proxy code uses.
  */
-public interface Flags extends CapabilityFlags, PacketTypes, MySQLTypes
-        , StatusFlags, RefreshCommands, CursorTypes
+public interface Flags extends
+        CapabilityFlags, PacketTypes, MySQLTypes,
+        StatusFlags, RefreshCommands, CursorTypes
 {
     public static final int HOSTNAME_LENGTH = 60;
     public static final int SYSTEM_CHARSET_MBMAXLEN = 3;
@@ -142,4 +143,7 @@ public interface Flags extends CapabilityFlags, PacketTypes, MySQLTypes
      * 在 ResultsetRow 中表示 NULL 的值
      */
     public static final short NULL_CELL = 0xfb;
+
+    public static final String MYSQL_NATIVE_PASSWORD = "mysql_native_password";
+    public static final String MYSQL_CLEAR_PASSWORD = "mysql_native_password";
 }

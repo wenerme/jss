@@ -27,6 +27,7 @@ import jss.proto.packet.text.CommandPacket;
 // 方法操作替换
 // ([\w.]+)[^=]*=\s*([^,)\n\t]+)(.[^\n\r]+)
 // $2,$1$3
+@SuppressWarnings("unused")
 public class PacketCodec
 {
     public static AuthSwitchRequest readPacket(ByteBuf buf, AuthSwitchRequest packet, int flags)
@@ -153,6 +154,7 @@ public class PacketCodec
         packet.challenge1 = string_fix(buf, 8);
         packet.filter = int1(buf);
         flags = packet.capabilityFlags = int2(buf);// lower 2 bytes
+        int authPluginDataLength = 8;
         if (hasMore(buf))
         {
             packet.characterSet = int1(buf);
@@ -161,7 +163,7 @@ public class PacketCodec
 
             if (hasFlag(flags, CLIENT_PLUGIN_AUTH))
             {
-                packet.authPluginDataLength = int1(buf);
+                authPluginDataLength = int1(buf);
             } else
             {
                 buf.readByte();// consume this byte
@@ -171,7 +173,7 @@ public class PacketCodec
 
             if (hasFlag(flags, CLIENT_SECURE_CONNECTION))
             {
-                packet.challenge2 = string_fix(buf, Math.max(13, packet.authPluginDataLength - 8));
+                packet.challenge2 = string_fix(buf, Math.max(13, authPluginDataLength - 8));
             }
 
             if (hasFlag(flags, CLIENT_PLUGIN_AUTH))
@@ -199,7 +201,7 @@ public class PacketCodec
 
             if (hasFlag(flags, CLIENT_PLUGIN_AUTH))
             {
-                int1(buf, packet.authPluginDataLength);
+                int1(buf, packet.authPluginDataLength());
             } else
             {
                 buf.readByte();// consume this byte
@@ -209,7 +211,7 @@ public class PacketCodec
 
             if (hasFlag(flags, CLIENT_SECURE_CONNECTION))
             {
-                string_fix(buf, packet.challenge2, Math.max(13, packet.authPluginDataLength - 8));
+                string_fix(buf, packet.challenge2, Math.max(13, packet.authPluginDataLength() - 8));
             }
 
             if (hasFlag(flags, CLIENT_PLUGIN_AUTH))
@@ -336,17 +338,17 @@ public class PacketCodec
 
     public static PacketData readPacket(ByteBuf buf, PacketData packet, int flags)
     {
-        packet.payloadLength = int3(buf);
+        int payloadLength = int3(buf);
         packet.sequenceId = int1(buf);
-        packet.payload = string_var(buf, packet.payloadLength);
+        packet.payload = string_var(buf, payloadLength);
         return packet;
     }
 
     public static ByteBuf writePacket(ByteBuf buf, PacketData packet, int flags)
     {
-        int3(buf, packet.payloadLength);
+        int3(buf, packet.payloadLength());
         int1(buf, packet.sequenceId);
-        string_var(buf, packet.payload, packet.payloadLength);
+        string_var(buf, packet.payload, packet.payloadLength());
         return buf;
     }
 
