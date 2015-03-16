@@ -1,3 +1,6 @@
+JSS 的目标 `MySQL Protocol Adapter for JDBC Connection`
+
+
 JSS Java SQL Server
 -------------------
 
